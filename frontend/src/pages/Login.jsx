@@ -2,6 +2,7 @@ import { useState } from "react";
 import axios from "axios";
 
 function Login({ setRole, setPage }) {
+
   const [formData, setFormData] = useState({
     email: "",
     password: ""
@@ -11,17 +12,23 @@ function Login({ setRole, setPage }) {
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
+
   const handleChange = (e) => {
+
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
     });
+
   };
 
+
   const handleSubmit = async (e) => {
+
     e.preventDefault();
 
     try {
+
       setLoading(true);
       setError("");
 
@@ -35,36 +42,62 @@ function Login({ setRole, setPage }) {
 
       const data = response.data;
 
+
       if (data.admin) {
+
         localStorage.setItem(
           "admin",
           JSON.stringify(data.admin)
         );
+
       }
 
-      localStorage.setItem("role", "admin");
+
+      localStorage.setItem(
+        "role",
+        "admin"
+      );
+
 
       if (data.token) {
-        localStorage.setItem("token", data.token);
+
+        localStorage.setItem(
+          "token",
+          data.token
+        );
+
       }
 
+
       setRole("admin");
+
       setPage("dashboard");
 
+
     } catch (error) {
-      console.error("Admin Login Error:", error);
+
+      console.error(
+        "Admin Login Error:",
+        error
+      );
 
       setError(
         error.response?.data?.message ||
         "Invalid email or password. Please try again."
       );
 
+
     } finally {
+
       setLoading(false);
+
     }
+
   };
 
+
   return (
+
     <div
       className="min-vh-100 d-flex align-items-center justify-content-center p-3"
       style={{
@@ -83,6 +116,9 @@ function Login({ setRole, setPage }) {
       >
 
         <div className="row g-0">
+
+
+          {/* LEFT SIDE */}
 
           <div
             className="col-md-5 text-white p-5 d-flex flex-column justify-content-center"
@@ -106,9 +142,11 @@ function Login({ setRole, setPage }) {
 
             </div>
 
+
             <h2 className="fw-bold mb-3">
               SVGU Admin Portal
             </h2>
+
 
             <p
               className="mb-4"
@@ -121,27 +159,46 @@ function Login({ setRole, setPage }) {
               System including books, students, issues and returns.
             </p>
 
+
             <div className="mb-3">
+
               <i className="bi bi-check-circle-fill me-2"></i>
+
               Manage Library Books
+
             </div>
 
+
             <div className="mb-3">
+
               <i className="bi bi-check-circle-fill me-2"></i>
+
               Manage Students
+
             </div>
 
+
             <div className="mb-3">
+
               <i className="bi bi-check-circle-fill me-2"></i>
+
               Issue & Return Books
+
             </div>
+
 
             <div>
+
               <i className="bi bi-check-circle-fill me-2"></i>
+
               Monitor Library Activities
+
             </div>
 
           </div>
+
+
+          {/* RIGHT SIDE */}
 
           <div className="col-md-7 bg-white p-4 p-md-5">
 
@@ -157,26 +214,39 @@ function Login({ setRole, setPage }) {
 
             </div>
 
+
+            {/* ERROR */}
+
             {error && (
+
               <div
                 className="alert alert-danger border-0"
                 role="alert"
               >
+
                 <i className="bi bi-exclamation-circle me-2"></i>
+
                 {error}
+
               </div>
+
             )}
+
 
             <form
               onSubmit={handleSubmit}
               autoComplete="off"
             >
 
+
+              {/* EMAIL */}
+
               <div className="mb-3">
 
                 <label className="form-label fw-semibold">
                   Email Address
                 </label>
+
 
                 <input
                   type="email"
@@ -191,11 +261,15 @@ function Login({ setRole, setPage }) {
 
               </div>
 
+
+              {/* PASSWORD */}
+
               <div className="mb-4">
 
                 <label className="form-label fw-semibold">
                   Password
                 </label>
+
 
                 <div className="input-group">
 
@@ -214,6 +288,7 @@ function Login({ setRole, setPage }) {
                     required
                   />
 
+
                   <button
                     type="button"
                     className="btn btn-outline-secondary"
@@ -221,6 +296,7 @@ function Login({ setRole, setPage }) {
                       setShowPassword(!showPassword)
                     }
                   >
+
                     <i
                       className={
                         showPassword
@@ -228,11 +304,15 @@ function Login({ setRole, setPage }) {
                           : "bi bi-eye"
                       }
                     ></i>
+
                   </button>
 
                 </div>
 
               </div>
+
+
+              {/* LOGIN BUTTON */}
 
               <button
                 type="submit"
@@ -241,25 +321,35 @@ function Login({ setRole, setPage }) {
               >
 
                 {loading ? (
+
                   <>
                     <span className="spinner-border spinner-border-sm me-2"></span>
+
                     Signing in...
                   </>
+
                 ) : (
+
                   <>
                     Login to Admin Portal
                   </>
+
                 )}
 
               </button>
 
+
             </form>
+
+
+            {/* REGISTER */}
 
             <div className="text-center mt-4">
 
               <span className="text-muted">
                 New administrator?
               </span>
+
 
               <button
                 type="button"
@@ -273,6 +363,9 @@ function Login({ setRole, setPage }) {
 
             </div>
 
+
+            {/* BACK */}
+
             <div className="text-center mt-3">
 
               <button
@@ -282,7 +375,11 @@ function Login({ setRole, setPage }) {
                   setPage("role-selection")
                 }
               >
+
+                <i className="bi bi-arrow-left me-2"></i>
+
                 Back
+
               </button>
 
             </div>
@@ -290,9 +387,13 @@ function Login({ setRole, setPage }) {
           </div>
 
         </div>
+
       </div>
+
     </div>
+
   );
+
 }
 
 export default Login;
