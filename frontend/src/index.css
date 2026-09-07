@@ -1,0 +1,169 @@
+body {
+  margin: 0;
+  background-color: #f5f6fa;
+  font-family: Arial, sans-serif;
+}
+
+.sidebar {
+  width: 240px;
+  min-height: 100vh;
+  background-color: #212529;
+  color: white;
+  padding: 25px 15px;
+}
+
+.sidebar a {
+  display: block;
+  color: #ddd;
+  text-decoration: none;
+  padding: 12px;
+  margin-bottom: 5px;
+  border-radius: 5px;
+}
+
+.sidebar a:hover {
+  background-color: #343a40;
+  color: white;
+}
+
+.sidebar i {
+  margin-right: 10px;
+}
+
+.navbar {
+  height: 65px;
+}
+
+.main-content {
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: 250px;
+  min-height: 100vh;
+  background: #10243e;
+  color: white;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-logo {
+  text-align: center;
+  padding: 25px 15px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.logo-circle {
+  width: 105px;
+  height: 105px;
+  background: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: auto;
+  margin-bottom: 15px;
+}
+
+.logo-circle img {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+}
+
+.sidebar-logo h5 {
+  font-weight: 700;
+  line-height: 1.4;
+  margin-bottom: 8px;
+}
+
+.sidebar-logo p {
+  color: #b8c4d4;
+  margin: 0;
+}
+
+.menu-title {
+  padding: 25px 18px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: #94a3b8;
+}
+
+.sidebar-menu {
+  padding: 0 16px;
+}
+
+.menu-item {
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: #ffffff;
+  padding: 15px 18px;
+  margin-bottom: 8px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+/* MOUSE HOVER */
+.menu-item:hover {
+  background: #243f61;
+  transform: translateX(4px);
+}
+
+/* CLICK KARNE KE BAAD ACTIVE */
+.menu-item.active {
+  background: #31598c;
+  font-weight: 600;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.menu-item i {
+  font-size: 18px;
+}
+
+.sidebar-bottom {
+  margin-top: auto;
+  text-align: center;
+  padding: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.university-icon {
+  font-size: 32px;
+  color: #a9c5e8;
+}
+
+.university-name {
+  font-weight: 600;
+  margin: 10px 0;
+}
+
+.university-text {
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+.logout-section {
+  padding: 15px;
+}
+
+.logout-btn {
+  width: 100%;
+  border: none;
+  background: #dc3545;
+  color: white;
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.logout-btn:hover {
+  background: #bb2d3b;
+}
