@@ -7,9 +7,7 @@ import {
   deleteBook
 } from "../services/bookService";
 
-
 function Books() {
-
   const [books, setBooks] = useState([]);
 
   const [search, setSearch] = useState("");
@@ -22,8 +20,7 @@ function Books() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  const [formData, setFormData] = useState({
-
+  const emptyForm = {
     isbn: "",
     title: "",
     author: "",
@@ -36,603 +33,421 @@ function Books() {
     shelfNumber: "",
     description: "",
     quantity: ""
+  };
 
-  });
-
+  const [formData, setFormData] = useState(emptyForm);
 
   // ==========================================
   // LOAD BOOKS
   // ==========================================
 
   const loadBooks = async () => {
-
     try {
-
       setLoading(true);
 
       const data = await getBooks();
 
-      setBooks(
-        Array.isArray(data)
-          ? data
-          : []
-      );
-
+      setBooks(Array.isArray(data) ? data : []);
     } catch (error) {
+      console.error("Failed to load books:", error);
 
-      console.error(
-        "Failed to load books:",
-        error
+      alert(
+        error.response?.data?.message ||
+        "Unable to load books"
       );
-
     } finally {
-
       setLoading(false);
-
     }
-
   };
 
-
   useEffect(() => {
-
     loadBooks();
-
   }, []);
-
 
   // ==========================================
   // HANDLE INPUT
   // ==========================================
 
   const handleChange = (e) => {
+    const { name, value } = e.target;
 
-    const {
-      name,
-      value
-    } = e.target;
-
-    setFormData(
-      prev => ({
-        ...prev,
-        [name]: value
-      })
-    );
-
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value
+    }));
   };
-
 
   // ==========================================
   // RESET FORM
   // ==========================================
 
   const resetForm = () => {
-
-    setFormData({
-
-      isbn: "",
-      title: "",
-      author: "",
-      subject: "",
-      publisher: "",
-      edition: "",
-      language: "English",
-      publicationYear: "",
-      price: "",
-      shelfNumber: "",
-      description: "",
-      quantity: ""
-
-    });
-
+    setFormData(emptyForm);
     setEditId(null);
-
     setShowForm(false);
-
   };
-
 
   // ==========================================
   // OPEN ADD FORM
   // ==========================================
 
   const openAddForm = () => {
-
-    setFormData({
-
-      isbn: "",
-      title: "",
-      author: "",
-      subject: "",
-      publisher: "",
-      edition: "",
-      language: "English",
-      publicationYear: "",
-      price: "",
-      shelfNumber: "",
-      description: "",
-      quantity: ""
-
-    });
-
+    setFormData(emptyForm);
     setEditId(null);
-
     setShowForm(true);
 
     window.scrollTo({
       top: 0,
       behavior: "smooth"
     });
-
   };
-
 
   // ==========================================
   // SAVE / UPDATE
   // ==========================================
 
   const handleSubmit = async (e) => {
-
     e.preventDefault();
 
-    try {
+    // Trim values before validation
+    const title = formData.title.trim();
+    const author = formData.author.trim();
+    const subject = formData.subject.trim();
 
+    // ==========================================
+    // FRONTEND VALIDATION
+    // ==========================================
+
+    if (!title) {
+      alert("Please enter Book Title");
+      return;
+    }
+
+    if (title.length < 2) {
+      alert("Book Title must be at least 2 characters");
+      return;
+    }
+
+    if (!author) {
+      alert("Please enter Author");
+      return;
+    }
+
+    if (author.length < 2) {
+      alert("Author name must be at least 2 characters");
+      return;
+    }
+
+    if (!subject) {
+      alert("Please enter Subject");
+      return;
+    }
+
+    if (subject.length < 2) {
+      alert("Subject must be at least 2 characters");
+      return;
+    }
+
+    if (!formData.quantity) {
+      alert("Please enter Total Quantity");
+      return;
+    }
+
+    const quantity = Number(formData.quantity);
+
+    if (!Number.isInteger(quantity) || quantity < 1) {
+      alert("Quantity must be a whole number greater than 0");
+      return;
+    }
+
+    try {
       setSaving(true);
 
-
       const data = {
+        isbn: formData.isbn.trim(),
 
-        isbn:
-          formData.isbn.trim(),
+        title: title,
 
-        title:
-          formData.title.trim(),
+        author: author,
 
-        author:
-          formData.author.trim(),
+        subject: subject,
 
-        subject:
-          formData.subject.trim(),
+        publisher: formData.publisher.trim(),
 
-        publisher:
-          formData.publisher.trim(),
+        edition: formData.edition.trim(),
 
-        edition:
-          formData.edition.trim(),
+        language: formData.language || "English",
 
-        language:
-          formData.language,
+        publicationYear: formData.publicationYear
+          ? Number(formData.publicationYear)
+          : "",
 
-        publicationYear:
-          formData.publicationYear
-            ? Number(formData.publicationYear)
-            : "",
+        price: formData.price
+          ? Number(formData.price)
+          : 0,
 
-        price:
-          formData.price
-            ? Number(formData.price)
-            : 0,
+        shelfNumber: formData.shelfNumber.trim(),
 
-        shelfNumber:
-          formData.shelfNumber.trim(),
+        description: formData.description.trim(),
 
-        description:
-          formData.description.trim(),
-
-        quantity:
-          Number(formData.quantity)
-
+        quantity: quantity
       };
 
+      console.log("BOOK DATA SENT TO BACKEND:", data);
 
       if (editId) {
+        await updateBook(editId, data);
 
-        await updateBook(
-          editId,
-          data
-        );
-
-        alert(
-          "Book updated successfully"
-        );
-
+        alert("Book updated successfully");
       } else {
-
         await createBook(data);
 
-        alert(
-          "Book added successfully"
-        );
-
+        alert("Book added successfully");
       }
-
 
       resetForm();
 
       await loadBooks();
 
-
     } catch (error) {
+      console.error("Book Save Error:", error);
 
       console.error(
-        "Book Save Error:",
-        error
+        "Backend Error:",
+        error.response?.data
       );
 
       alert(
-
         error.response?.data?.message ||
-
+        error.response?.data?.error ||
         "Unable to save book"
-
       );
-
     } finally {
-
       setSaving(false);
-
     }
-
   };
-
 
   // ==========================================
   // EDIT BOOK
   // ==========================================
 
   const handleEdit = (book) => {
-
     setFormData({
+      isbn: book.isbn || "",
 
-      isbn:
-        book.isbn || "",
+      title: book.title || "",
 
-      title:
-        book.title || "",
+      author: book.author || "",
 
-      author:
-        book.author || "",
+      subject: book.subject || "",
 
-      subject:
-        book.subject || "",
+      publisher: book.publisher || "",
 
-      publisher:
-        book.publisher || "",
+      edition: book.edition || "",
 
-      edition:
-        book.edition || "",
+      language: book.language || "English",
 
-      language:
-        book.language || "English",
+      publicationYear: book.publicationYear || "",
 
-      publicationYear:
-        book.publicationYear || "",
+      price: book.price ?? "",
 
-      price:
-        book.price ?? "",
+      shelfNumber: book.shelfNumber || "",
 
-      shelfNumber:
-        book.shelfNumber || "",
+      description: book.description || "",
 
-      description:
-        book.description || "",
-
-      quantity:
-        book.quantity || ""
-
+      quantity: book.quantity || ""
     });
 
-
-    setEditId(
-      book._id
-    );
-
+    setEditId(book._id);
     setShowForm(true);
 
-
     window.scrollTo({
-
       top: 0,
-
       behavior: "smooth"
-
     });
-
   };
-
 
   // ==========================================
   // DELETE BOOK
   // ==========================================
 
   const handleDelete = async (id) => {
-
-    const confirmed =
-      window.confirm(
-
-        "Are you sure you want to delete this book?\n\nRelated issue records will also be removed."
-
-      );
-
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this book?\n\nRelated issue records will also be removed."
+    );
 
     if (!confirmed) {
       return;
     }
 
-
     try {
-
       setLoading(true);
-
 
       await deleteBook(id);
 
-
-      alert(
-        "Book deleted successfully"
-      );
-
+      alert("Book deleted successfully");
 
       await loadBooks();
 
-
     } catch (error) {
-
-      console.error(
-        "Delete Error:",
-        error
-      );
+      console.error("Delete Error:", error);
 
       alert(
-
         error.response?.data?.message ||
-
         "Unable to delete book"
-
       );
-
     } finally {
-
       setLoading(false);
-
     }
-
   };
-
 
   // ==========================================
   // SUBJECT LIST
   // ==========================================
 
   const subjects = useMemo(() => {
-
     return [
       ...new Set(
-
         books
-
-          .map(
-            book => book.subject
-          )
-
+          .map((book) => book.subject)
           .filter(Boolean)
-
       )
     ].sort();
-
   }, [books]);
-
 
   // ==========================================
   // FILTER BOOKS
   // ==========================================
 
-  const filteredBooks =
-    books.filter(book => {
+  const filteredBooks = books.filter((book) => {
+    const searchText = `
+      ${book.bookId || ""}
+      ${book.isbn || ""}
+      ${book.title || ""}
+      ${book.author || ""}
+      ${book.subject || ""}
+      ${book.publisher || ""}
+      ${book.shelfNumber || ""}
+    `.toLowerCase();
 
+    const matchesSearch = searchText.includes(
+      search.toLowerCase()
+    );
 
-      const searchText = `
+    const matchesSubject =
+      subjectFilter === "All" ||
+      book.subject === subjectFilter;
 
-        ${book.bookId || ""}
+    const available = Number(
+      book.availableQuantity || 0
+    );
 
-        ${book.isbn || ""}
+    const status =
+      available > 0
+        ? "Available"
+        : "Out of Stock";
 
-        ${book.title || ""}
+    const matchesStatus =
+      statusFilter === "All" ||
+      status === statusFilter;
 
-        ${book.author || ""}
-
-        ${book.subject || ""}
-
-        ${book.publisher || ""}
-
-        ${book.shelfNumber || ""}
-
-      `.toLowerCase();
-
-
-      const matchesSearch =
-        searchText.includes(
-          search.toLowerCase()
-        );
-
-
-      const matchesSubject =
-        subjectFilter === "All" ||
-
-        book.subject ===
-        subjectFilter;
-
-
-      const available =
-        Number(
-          book.availableQuantity || 0
-        );
-
-
-      const status =
-        available > 0
-          ? "Available"
-          : "Out of Stock";
-
-
-      const matchesStatus =
-        statusFilter === "All" ||
-
-        status === statusFilter;
-
-
-      return (
-
-        matchesSearch &&
-
-        matchesSubject &&
-
-        matchesStatus
-
-      );
-
-    });
-
+    return (
+      matchesSearch &&
+      matchesSubject &&
+      matchesStatus
+    );
+  });
 
   // ==========================================
   // DASHBOARD COUNTS
   // ==========================================
 
-  const totalTitles =
-    books.length;
+  const totalTitles = books.length;
 
+  const totalCopies = books.reduce(
+    (sum, book) =>
+      sum + Number(book.quantity || 0),
+    0
+  );
 
-  const totalCopies =
-    books.reduce(
+  const availableCopies = books.reduce(
+    (sum, book) =>
+      sum + Number(book.availableQuantity || 0),
+    0
+  );
 
-      (sum, book) =>
-
-        sum +
-        Number(
-          book.quantity || 0
-        ),
-
-      0
-
-    );
-
-
-  const availableCopies =
-    books.reduce(
-
-      (sum, book) =>
-
-        sum +
-        Number(
-          book.availableQuantity || 0
-        ),
-
-      0
-
-    );
-
-
-  const issuedCopies =
-    Math.max(
-      totalCopies -
-      availableCopies,
-      0
-    );
-
+  const issuedCopies = Math.max(
+    totalCopies - availableCopies,
+    0
+  );
 
   // ==========================================
   // UI
   // ==========================================
 
   return (
-
     <div
       className="container-fluid px-4 py-4"
       style={{
         background: "#f5f7fb",
-        minHeight:
-          "calc(100vh - 70px)"
+        minHeight: "calc(100vh - 70px)"
       }}
     >
 
-
-      {/* ======================================
-          HEADER
-      ====================================== */}
+      {/* HEADER */}
 
       <div className="d-flex justify-content-between align-items-center mb-4">
 
-        <div>
+        <div className="d-flex align-items-center gap-3">
 
-          <div className="d-flex align-items-center gap-3">
+          <div
+            className="rounded-3 d-flex align-items-center justify-content-center"
+            style={{
+              width: "48px",
+              height: "48px",
+              background: "#e8f0fe",
+              color: "#2563eb"
+            }}
+          >
+            <i className="bi bi-book-half fs-4"></i>
+          </div>
 
-            <div
-              className="rounded-3 d-flex align-items-center justify-content-center"
-              style={{
-                width: "48px",
-                height: "48px",
-                background: "#e8f0fe",
-                color: "#2563eb"
-              }}
-            >
+          <div>
+            <h3 className="fw-bold mb-1">
+              Books Management
+            </h3>
 
-              <i className="bi bi-book-half fs-4"></i>
-
-            </div>
-
-
-            <div>
-
-              <h3 className="fw-bold mb-1">
-                Books Management
-              </h3>
-
-              <p className="text-muted mb-0">
-                Manage library collection,
-                inventory and availability
-              </p>
-
-            </div>
-
+            <p className="text-muted mb-0">
+              Manage library collection,
+              inventory and availability
+            </p>
           </div>
 
         </div>
-
 
         <button
           className="btn btn-primary px-4 py-2 fw-semibold shadow-sm"
           onClick={openAddForm}
         >
-
           <i className="bi bi-plus-lg me-2"></i>
-
           Add New Book
-
         </button>
 
       </div>
 
-
-
-      {/* ======================================
-          SUMMARY CARDS
-      ====================================== */}
+      {/* SUMMARY CARDS */}
 
       <div className="row g-3 mb-4">
-
 
         {/* TOTAL TITLES */}
 
         <div className="col-xl-3 col-md-6">
-
           <div className="card border-0 shadow-sm h-100">
-
             <div className="card-body p-4">
 
               <div className="d-flex justify-content-between align-items-center">
 
                 <div>
-
                   <small className="text-muted fw-semibold">
                     TOTAL TITLES
                   </small>
@@ -644,9 +459,7 @@ function Books() {
                   <small className="text-muted">
                     Different books
                   </small>
-
                 </div>
-
 
                 <div
                   className="rounded-3 d-flex align-items-center justify-content-center"
@@ -657,32 +470,24 @@ function Books() {
                     color: "#2563eb"
                   }}
                 >
-
                   <i className="bi bi-book fs-4"></i>
-
                 </div>
 
               </div>
 
             </div>
-
           </div>
-
         </div>
-
 
         {/* TOTAL COPIES */}
 
         <div className="col-xl-3 col-md-6">
-
           <div className="card border-0 shadow-sm h-100">
-
             <div className="card-body p-4">
 
               <div className="d-flex justify-content-between align-items-center">
 
                 <div>
-
                   <small className="text-muted fw-semibold">
                     TOTAL COPIES
                   </small>
@@ -694,9 +499,7 @@ function Books() {
                   <small className="text-muted">
                     Library inventory
                   </small>
-
                 </div>
-
 
                 <div
                   className="rounded-3 d-flex align-items-center justify-content-center"
@@ -707,32 +510,24 @@ function Books() {
                     color: "#198754"
                   }}
                 >
-
                   <i className="bi bi-stack fs-4"></i>
-
                 </div>
 
               </div>
 
             </div>
-
           </div>
-
         </div>
-
 
         {/* AVAILABLE */}
 
         <div className="col-xl-3 col-md-6">
-
           <div className="card border-0 shadow-sm h-100">
-
             <div className="card-body p-4">
 
               <div className="d-flex justify-content-between align-items-center">
 
                 <div>
-
                   <small className="text-muted fw-semibold">
                     AVAILABLE
                   </small>
@@ -744,9 +539,7 @@ function Books() {
                   <small className="text-muted">
                     Ready to issue
                   </small>
-
                 </div>
-
 
                 <div
                   className="rounded-3 d-flex align-items-center justify-content-center"
@@ -757,32 +550,24 @@ function Books() {
                     color: "#198754"
                   }}
                 >
-
                   <i className="bi bi-check-circle fs-4"></i>
-
                 </div>
 
               </div>
 
             </div>
-
           </div>
-
         </div>
-
 
         {/* ISSUED */}
 
         <div className="col-xl-3 col-md-6">
-
           <div className="card border-0 shadow-sm h-100">
-
             <div className="card-body p-4">
 
               <div className="d-flex justify-content-between align-items-center">
 
                 <div>
-
                   <small className="text-muted fw-semibold">
                     ISSUED
                   </small>
@@ -794,9 +579,7 @@ function Books() {
                   <small className="text-muted">
                     Currently issued
                   </small>
-
                 </div>
-
 
                 <div
                   className="rounded-3 d-flex align-items-center justify-content-center"
@@ -807,31 +590,21 @@ function Books() {
                     color: "#f59e0b"
                   }}
                 >
-
                   <i className="bi bi-journal-arrow-up fs-4"></i>
-
                 </div>
 
               </div>
 
             </div>
-
           </div>
-
         </div>
 
       </div>
 
-
-
-      {/* ======================================
-          ADD / EDIT FORM
-      ====================================== */}
+      {/* ADD / EDIT FORM */}
 
       {showForm && (
-
         <div className="card border-0 shadow-sm mb-4">
-
 
           <div className="card-header bg-white p-4">
 
@@ -855,29 +628,23 @@ function Books() {
 
               </div>
 
-
               <button
                 type="button"
                 className="btn btn-light border"
                 onClick={resetForm}
               >
-
                 <i className="bi bi-x-lg"></i>
-
               </button>
 
             </div>
 
           </div>
 
-
           <div className="card-body p-4">
 
             <form onSubmit={handleSubmit}>
 
-
               <div className="row g-3">
-
 
                 {/* ISBN */}
 
@@ -898,14 +665,15 @@ function Books() {
 
                 </div>
 
-
                 {/* TITLE */}
 
                 <div className="col-lg-8 col-md-6">
 
                   <label className="form-label fw-semibold">
                     Book Title
-                    <span className="text-danger ms-1">*</span>
+                    <span className="text-danger ms-1">
+                      *
+                    </span>
                   </label>
 
                   <input
@@ -920,14 +688,15 @@ function Books() {
 
                 </div>
 
-
                 {/* AUTHOR */}
 
                 <div className="col-md-6">
 
                   <label className="form-label fw-semibold">
                     Author
-                    <span className="text-danger ms-1">*</span>
+                    <span className="text-danger ms-1">
+                      *
+                    </span>
                   </label>
 
                   <input
@@ -942,14 +711,15 @@ function Books() {
 
                 </div>
 
-
                 {/* SUBJECT */}
 
                 <div className="col-md-6">
 
                   <label className="form-label fw-semibold">
                     Subject
-                    <span className="text-danger ms-1">*</span>
+                    <span className="text-danger ms-1">
+                      *
+                    </span>
                   </label>
 
                   <input
@@ -962,8 +732,11 @@ function Books() {
                     required
                   />
 
-                </div>
+                  <small className="text-muted">
+                    Subject is required for every book.
+                  </small>
 
+                </div>
 
                 {/* PUBLISHER */}
 
@@ -984,7 +757,6 @@ function Books() {
 
                 </div>
 
-
                 {/* EDITION */}
 
                 <div className="col-md-3">
@@ -1003,7 +775,6 @@ function Books() {
                   />
 
                 </div>
-
 
                 {/* LANGUAGE */}
 
@@ -1040,8 +811,7 @@ function Books() {
 
                 </div>
 
-
-                {/* YEAR */}
+                {/* PUBLICATION YEAR */}
 
                 <div className="col-md-4">
 
@@ -1061,7 +831,6 @@ function Books() {
                   />
 
                 </div>
-
 
                 {/* PRICE */}
 
@@ -1092,7 +861,6 @@ function Books() {
 
                 </div>
 
-
                 {/* SHELF */}
 
                 <div className="col-md-4">
@@ -1112,14 +880,15 @@ function Books() {
 
                 </div>
 
-
                 {/* QUANTITY */}
 
                 <div className="col-md-4">
 
                   <label className="form-label fw-semibold">
                     Total Quantity
-                    <span className="text-danger ms-1">*</span>
+                    <span className="text-danger ms-1">
+                      *
+                    </span>
                   </label>
 
                   <input
@@ -1128,13 +897,13 @@ function Books() {
                     className="form-control"
                     placeholder="Enter quantity"
                     min="1"
+                    step="1"
                     value={formData.quantity}
                     onChange={handleChange}
                     required
                   />
 
                 </div>
-
 
                 {/* DESCRIPTION */}
 
@@ -1157,8 +926,7 @@ function Books() {
 
               </div>
 
-
-              {/* FORM BUTTONS */}
+              {/* BUTTONS */}
 
               <div className="border-top mt-4 pt-4">
 
@@ -1169,36 +937,29 @@ function Books() {
                 >
 
                   {saving ? (
-
                     <>
                       <span className="spinner-border spinner-border-sm me-2"></span>
                       Saving...
                     </>
-
                   ) : (
-
                     <>
                       <i className="bi bi-check-lg me-2"></i>
 
                       {editId
                         ? "Update Book"
                         : "Save Book"}
-
                     </>
-
                   )}
 
                 </button>
-
 
                 <button
                   type="button"
                   className="btn btn-outline-secondary px-4"
                   onClick={resetForm}
+                  disabled={saving}
                 >
-
                   Cancel
-
                 </button>
 
               </div>
@@ -1208,21 +969,15 @@ function Books() {
           </div>
 
         </div>
-
       )}
 
-
-
-      {/* ======================================
-          SEARCH & FILTER
-      ====================================== */}
+      {/* SEARCH & FILTER */}
 
       <div className="card border-0 shadow-sm mb-4">
 
         <div className="card-body p-4">
 
           <div className="row g-3 align-items-end">
-
 
             {/* SEARCH */}
 
@@ -1252,7 +1007,6 @@ function Books() {
 
             </div>
 
-
             {/* SUBJECT */}
 
             <div className="col-lg-3">
@@ -1273,23 +1027,18 @@ function Books() {
                   All Subjects
                 </option>
 
-                {subjects.map(
-                  subject => (
-
-                    <option
-                      key={subject}
-                      value={subject}
-                    >
-                      {subject}
-                    </option>
-
-                  )
-                )}
+                {subjects.map((subject) => (
+                  <option
+                    key={subject}
+                    value={subject}
+                  >
+                    {subject}
+                  </option>
+                ))}
 
               </select>
 
             </div>
-
 
             {/* STATUS */}
 
@@ -1329,16 +1078,9 @@ function Books() {
 
       </div>
 
-
-
-      {/* ======================================
-          BOOK LIST
-      ====================================== */}
+      {/* BOOK LIST */}
 
       <div className="card border-0 shadow-sm">
-
-
-        {/* TABLE HEADER */}
 
         <div className="card-header bg-white p-4">
 
@@ -1359,20 +1101,13 @@ function Books() {
 
             </div>
 
-
             <span className="badge bg-primary px-3 py-2">
-
               {filteredBooks.length}
-
             </span>
 
           </div>
 
         </div>
-
-
-
-        {/* TABLE */}
 
         <div className="table-responsive">
 
@@ -1382,7 +1117,6 @@ function Books() {
               minWidth: "1250px"
             }}
           >
-
 
             <thead
               style={{
@@ -1433,15 +1167,9 @@ function Books() {
 
             </thead>
 
-
-
             <tbody>
 
-
-              {/* LOADING */}
-
-              {loading &&
-              books.length === 0 ? (
+              {loading && books.length === 0 ? (
 
                 <tr>
 
@@ -1461,9 +1189,6 @@ function Books() {
                 </tr>
 
               ) : filteredBooks.length === 0 ? (
-
-
-                /* NO DATA */
 
                 <tr>
 
@@ -1491,296 +1216,214 @@ function Books() {
 
                 </tr>
 
-
               ) : (
 
+                filteredBooks.map((book, index) => {
 
-                /* BOOK RECORDS */
+                  const total = Number(
+                    book.quantity || 0
+                  );
 
-                filteredBooks.map(
-                  (book, index) => {
+                  const available = Number(
+                    book.availableQuantity || 0
+                  );
 
+                  const issued = Math.max(
+                    total - available,
+                    0
+                  );
 
-                    const total =
-                      Number(
-                        book.quantity || 0
-                      );
+                  const isAvailable =
+                    available > 0;
 
+                  return (
+                    <tr key={book._id}>
 
-                    const available =
-                      Number(
-                        book.availableQuantity || 0
-                      );
+                      {/* NUMBER */}
 
+                      <td className="px-3 text-muted fw-semibold">
+                        {index + 1}
+                      </td>
 
-                    const issued =
-                      Math.max(
-                        total -
-                        available,
-                        0
-                      );
+                      {/* BOOK DETAILS */}
 
+                      <td>
 
-                    const isAvailable =
-                      available > 0;
+                        <div>
 
+                          <div className="fw-bold text-dark">
+                            {book.title || "Untitled Book"}
+                          </div>
 
-                    return (
+                          <div className="d-flex gap-2 flex-wrap mt-1">
 
-                      <tr
-                        key={book._id}
-                      >
+                            {book.bookId && (
+                              <span className="badge bg-primary-subtle text-primary">
+                                {book.bookId}
+                              </span>
+                            )}
 
-
-                        {/* NUMBER */}
-
-                        <td className="px-3 text-muted fw-semibold">
-
-                          {index + 1}
-
-                        </td>
-
-
-                        {/* BOOK DETAILS */}
-
-                        <td>
-
-                          <div>
-
-                            <div className="fw-bold text-dark">
-
-                              {book.title || "Untitled Book"}
-
-                            </div>
-
-
-                            <div className="d-flex gap-2 flex-wrap mt-1">
-
-
-                              {book.bookId && (
-
-                                <span
-                                  className="badge bg-primary-subtle text-primary"
-                                >
-
-                                  {book.bookId}
-
-                                </span>
-
-                              )}
-
-
-                              {book.isbn && (
-
-                                <small className="text-muted">
-
-                                  ISBN:
-                                  {" "}
-                                  {book.isbn}
-
-                                </small>
-
-                              )}
-
-                            </div>
+                            {book.isbn && (
+                              <small className="text-muted">
+                                ISBN: {book.isbn}
+                              </small>
+                            )}
 
                           </div>
 
-                        </td>
+                        </div>
 
+                      </td>
 
-                        {/* AUTHOR */}
+                      {/* AUTHOR */}
 
-                        <td>
+                      <td>
 
-                          <span className="fw-medium">
+                        <span className="fw-medium">
+                          {book.author || "—"}
+                        </span>
 
-                            {book.author || "—"}
+                      </td>
 
-                          </span>
+                      {/* SUBJECT */}
 
-                        </td>
+                      <td>
 
-
-                        {/* SUBJECT */}
-
-                        <td>
-
-                          {book.subject ? (
-
-                            <span
-                              className="badge rounded-pill"
-                              style={{
-                                background: "#e0f2fe",
-                                color: "#0369a1"
-                              }}
-                            >
-
-                              {book.subject}
-
-                            </span>
-
-                          ) : (
-
-                            <span className="text-muted">
-                              —
-                            </span>
-
-                          )}
-
-                        </td>
-
-
-                        {/* SHELF */}
-
-                        <td>
-
-                          {book.shelfNumber ? (
-
-                            <span className="fw-semibold">
-
-                              <i className="bi bi-bookshelf me-1"></i>
-
-                              {book.shelfNumber}
-
-                            </span>
-
-                          ) : (
-
-                            <span className="text-muted">
-                              —
-                            </span>
-
-                          )}
-
-                        </td>
-
-
-                        {/* TOTAL */}
-
-                        <td className="text-center">
-
-                          <span className="fw-bold">
-
-                            {total}
-
-                          </span>
-
-                        </td>
-
-
-                        {/* AVAILABLE */}
-
-                        <td className="text-center">
-
+                        {book.subject ? (
                           <span
-                            className={
-                              available > 0
+                            className="badge rounded-pill"
+                            style={{
+                              background: "#e0f2fe",
+                              color: "#0369a1"
+                            }}
+                          >
+                            {book.subject}
+                          </span>
+                        ) : (
+                          <span className="text-muted">
+                            —
+                          </span>
+                        )}
 
-                                ? "badge bg-success rounded-pill px-3"
+                      </td>
 
-                                : "badge bg-danger rounded-pill px-3"
+                      {/* SHELF */}
+
+                      <td>
+
+                        {book.shelfNumber ? (
+                          <span className="fw-semibold">
+
+                            <i className="bi bi-bookshelf me-1"></i>
+
+                            {book.shelfNumber}
+
+                          </span>
+                        ) : (
+                          <span className="text-muted">
+                            —
+                          </span>
+                        )}
+
+                      </td>
+
+                      {/* TOTAL */}
+
+                      <td className="text-center">
+
+                        <span className="fw-bold">
+                          {total}
+                        </span>
+
+                      </td>
+
+                      {/* AVAILABLE */}
+
+                      <td className="text-center">
+
+                        <span
+                          className={
+                            available > 0
+                              ? "badge bg-success rounded-pill px-3"
+                              : "badge bg-danger rounded-pill px-3"
+                          }
+                        >
+                          {available}
+                        </span>
+
+                      </td>
+
+                      {/* STATUS */}
+
+                      <td>
+
+                        {isAvailable ? (
+
+                          <span className="badge bg-success-subtle text-success border border-success-subtle rounded-pill">
+
+                            <i className="bi bi-check-circle me-1"></i>
+
+                            Available
+
+                          </span>
+
+                        ) : (
+
+                          <span className="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill">
+
+                            <i className="bi bi-x-circle me-1"></i>
+
+                            Out of Stock
+
+                          </span>
+
+                        )}
+
+                        {issued > 0 && (
+                          <div className="mt-1">
+                            <small className="text-muted">
+                              {issued} issued
+                            </small>
+                          </div>
+                        )}
+
+                      </td>
+
+                      {/* ACTION */}
+
+                      <td className="text-center">
+
+                        <div className="btn-group">
+
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-outline-primary"
+                            title="Edit Book"
+                            onClick={() =>
+                              handleEdit(book)
                             }
                           >
+                            <i className="bi bi-pencil"></i>
+                          </button>
 
-                            {available}
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-outline-danger"
+                            title="Delete Book"
+                            onClick={() =>
+                              handleDelete(book._id)
+                            }
+                          >
+                            <i className="bi bi-trash"></i>
+                          </button>
 
-                          </span>
+                        </div>
 
-                        </td>
+                      </td>
 
-
-                        {/* STATUS */}
-
-                        <td>
-
-                          {isAvailable ? (
-
-                            <span className="badge bg-success-subtle text-success border border-success-subtle rounded-pill">
-
-                              <i className="bi bi-check-circle me-1"></i>
-
-                              Available
-
-                            </span>
-
-                          ) : (
-
-                            <span className="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill">
-
-                              <i className="bi bi-x-circle me-1"></i>
-
-                              Out of Stock
-
-                            </span>
-
-                          )}
-
-
-                          {issued > 0 && (
-
-                            <div className="mt-1">
-
-                              <small className="text-muted">
-
-                                {issued} issued
-
-                              </small>
-
-                            </div>
-
-                          )}
-
-                        </td>
-
-
-                        {/* ACTION */}
-
-                        <td className="text-center">
-
-                          <div className="btn-group">
-
-                            <button
-                              type="button"
-                              className="btn btn-sm btn-outline-primary"
-                              title="Edit Book"
-                              onClick={() =>
-                                handleEdit(book)
-                              }
-                            >
-
-                              <i className="bi bi-pencil"></i>
-
-                            </button>
-
-
-                            <button
-                              type="button"
-                              className="btn btn-sm btn-outline-danger"
-                              title="Delete Book"
-                              onClick={() =>
-                                handleDelete(
-                                  book._id
-                                )
-                              }
-                            >
-
-                              <i className="bi bi-trash"></i>
-
-                            </button>
-
-                          </div>
-
-                        </td>
-
-                      </tr>
-
-                    );
-
-                  }
-
-                )
-
+                    </tr>
+                  );
+                })
               )}
 
             </tbody>
@@ -1792,10 +1435,7 @@ function Books() {
       </div>
 
     </div>
-
   );
-
 }
-
 
 export default Books;
