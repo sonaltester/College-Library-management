@@ -1,40 +1,39 @@
-const Issue = require("../models/Issue");
-const Book = require("../models/Book");
-const Student = require("../models/Student");
+const Issue = require("../models/Issue")
+const Book = require("../models/Book")
+const Student = require("../models/Student")
 
-// ========================================
-// GET ALL ISSUES
-// ========================================
+// ==========================================
+// GET ALL ISSUE RECORDS
+// ==========================================
 
 const getIssues = async (req, res) => {
   try {
-
     const issues = await Issue.find()
-      .populate(
-        "book",
-        "bookId isbn title author subject publisher shelfNumber"
-      )
-      .populate(
-        "student",
-        "name enrollmentNo email course semester phone status"
-      )
-      .sort({ createdAt: -1 });
+      .populate({
+        path: "book",
+        select: "title author category quantity availableQuantity"
+      })
+      .populate({
+        path: "student",
+        select: "name enrollmentNo email course semester"
+      })
+      .sort({ createdAt: -1 })
 
-    res.status(200).json(issues);
+    res.json(issues)
 
   } catch (error) {
-
-    console.error("GET ISSUES ERROR:", error);
+    console.error("GET ISSUES ERROR:", error)
 
     res.status(500).json({
-      message: error.message || "Failed to fetch issues"
-    });
+      message: error.message
+    })
   }
-};
+}
 
-// ========================================
+
+// ==========================================
 // ISSUE BOOK
-// ========================================
+// ==========================================
 
 const issueBook = async (req, res) => {
   try {
@@ -42,343 +41,236 @@ const issueBook = async (req, res) => {
     const {
       book,
       student,
-      issueDate,
       dueDate
-    } = req.body;
+    } = req.body
 
-    // -------------------------
-    // VALIDATION
-    // -------------------------
+    // Check book
+    const selectedBook =
+      await Book.findById(book)
 
-    if (!book || !student) {
-      return res.status(400).json({
-        message: "Book and student are required"
-      });
-    }
-
-    if (!issueDate) {
-      return res.status(400).json({
-        message: "Issue date is required"
-      });
-    }
-
-    if (!dueDate) {
-      return res.status(400).json({
-        message: "Due date is required"
-      });
-    }
-
-    // -------------------------
-    // FIND BOOK
-    // -------------------------
-
-    const bookData = await Book.findById(book);
-
-    if (!bookData) {
+    if (!selectedBook) {
       return res.status(404).json({
         message: "Book not found"
-      });
+      })
     }
 
-    // -------------------------
-    // CHECK AVAILABLE
-    // -------------------------
+    // Check student
+    const selectedStudent =
+      await Student.findById(student)
 
-    if (Number(bookData.availableQuantity) <= 0) {
-      return res.status(400).json({
-        message: "Book is not available"
-      });
-    }
-
-    // -------------------------
-    // FIND STUDENT
-    // -------------------------
-
-    const studentData =
-      await Student.findById(student);
-
-    if (!studentData) {
+    if (!selectedStudent) {
       return res.status(404).json({
         message: "Student not found"
-      });
+      })
     }
 
-    // -------------------------
-    // CHECK ACTIVE
-    // -------------------------
-
-    if (studentData.status === "Inactive") {
+    // Check availability
+    if (
+      selectedBook.availableQuantity <= 0
+    ) {
       return res.status(400).json({
-        message: "Inactive student cannot issue a book"
-      });
+        message: "Book is not available"
+      })
     }
 
-    // -------------------------
-    // CHECK DUPLICATE ACTIVE ISSUE
-    // -------------------------
-
+    // Check duplicate issue
     const existingIssue =
       await Issue.findOne({
         book,
         student,
         status: "Issued"
-      });
+      })
 
     if (existingIssue) {
       return res.status(400).json({
         message:
-          "This student already has this book issued"
-      });
+          "This book is already issued to this student"
+      })
     }
 
-    // -------------------------
-    // DATE VALIDATION
-    // -------------------------
+    // Create issue record
+    const issue =
+      await Issue.create({
+        book,
+        student,
+        dueDate,
+        status: "Issued"
+      })
 
-    const finalIssueDate =
-      new Date(`${issueDate}T00:00:00`);
+    // Decrease available quantity
+    await Book.findByIdAndUpdate(
+      book,
+      {
+        $inc: {
+          availableQuantity: -1
+        }
+      },
+      {
+        runValidators: false
+      }
+    )
 
-    const finalDueDate =
-      new Date(`${dueDate}T23:59:59`);
-
-    if (isNaN(finalIssueDate.getTime())) {
-      return res.status(400).json({
-        message: "Invalid issue date"
-      });
-    }
-
-    if (isNaN(finalDueDate.getTime())) {
-      return res.status(400).json({
-        message: "Invalid due date"
-      });
-    }
-
-    if (finalDueDate < finalIssueDate) {
-      return res.status(400).json({
-        message:
-          "Due date cannot be before issue date"
-      });
-    }
-
-    // -------------------------
-    // CREATE ISSUE
-    // -------------------------
-
-    const issue = await Issue.create({
-
-      book: bookData._id,
-
-      student: studentData._id,
-
-      issueDate: finalIssueDate,
-
-      dueDate: finalDueDate,
-
-      status: "Issued",
-
-      fine: 0
-
-    });
-
-    // -------------------------
-    // DECREASE AVAILABLE
-    // -------------------------
-
-    bookData.availableQuantity =
-      Number(bookData.availableQuantity) - 1;
-
-    await bookData.save();
-
-    // -------------------------
-    // RESPONSE
-    // -------------------------
-
-    const populatedIssue =
+    // Return populated issue
+    const result =
       await Issue.findById(issue._id)
-        .populate(
-          "book",
-          "bookId isbn title author subject"
-        )
-        .populate(
-          "student",
-          "name enrollmentNo email"
-        );
+        .populate("book")
+        .populate("student")
 
-    res.status(201).json({
-      message: "Book issued successfully",
-      issue: populatedIssue
-    });
+    res.status(201).json(result)
 
   } catch (error) {
 
-    console.error("ISSUE BOOK ERROR:", error);
+    console.error(
+      "ISSUE BOOK ERROR:",
+      error
+    )
 
-    res.status(500).json({
+    res.status(400).json({
       message:
-        error.message || "Failed to issue book"
-    });
+        error.message ||
+        "Book issue failed"
+    })
   }
-};
+}
 
-// ========================================
+
+// ==========================================
 // RETURN BOOK
-// ========================================
+// ==========================================
 
 const returnBook = async (req, res) => {
-
   try {
 
+    const issueId = req.params.id
+
+    // Check issue record
     const issue =
-      await Issue.findById(req.params.id);
+      await Issue.findById(issueId)
 
     if (!issue) {
       return res.status(404).json({
-        message: "Issue record not found"
-      });
+        message:
+          "Issue record not found"
+      })
     }
 
-    // -------------------------
-    // ALREADY RETURNED
-    // -------------------------
-
+    // Already returned?
     if (issue.status === "Returned") {
       return res.status(400).json({
-        message: "Book has already been returned"
-      });
+        message:
+          "Book already returned"
+      })
     }
 
-    // -------------------------
-    // RETURN DATE = TODAY
-    // -------------------------
+    // ======================================
+    // CALCULATE LATE DAYS
+    // ======================================
 
-    const returnDate = new Date();
-
-    // -------------------------
-    // DUE DATE
-    // -------------------------
+    const returnDate = new Date()
 
     const dueDate =
-      new Date(issue.dueDate);
+      new Date(issue.dueDate)
 
-    dueDate.setHours(0, 0, 0, 0);
+    const difference =
+      returnDate.getTime() -
+      dueDate.getTime()
 
-    const returnDateOnly =
-      new Date(returnDate);
-
-    returnDateOnly.setHours(0, 0, 0, 0);
-
-    // -------------------------
-    // CALCULATE LATE DAYS
-    // -------------------------
-
-    let lateDays = 0;
-
-    if (returnDateOnly > dueDate) {
-
-      const difference =
-        returnDateOnly.getTime() -
-        dueDate.getTime();
-
-      lateDays = Math.ceil(
+    const lateDays = Math.max(
+      0,
+      Math.ceil(
         difference /
-        (1000 * 60 * 60 * 24)
-      );
-    }
+          (1000 * 60 * 60 * 24)
+      )
+    )
 
-    // -------------------------
-    // FINE ₹5 PER DAY
-    // -------------------------
-
-    const FINE_PER_DAY = 5;
-
+    // ₹5 per late day
     const fine =
-      lateDays * FINE_PER_DAY;
+      lateDays * 5
 
-    // -------------------------
-    // UPDATE ISSUE
-    // -------------------------
 
-    issue.returnDate = returnDate;
+    // ======================================
+    // UPDATE ISSUE RECORD
+    // ======================================
 
-    issue.lateDays = lateDays;
+    issue.status = "Returned"
 
-    issue.fine = fine;
+    issue.returnDate = returnDate
 
-    issue.status = "Returned";
+    issue.fine = fine
 
-    await issue.save();
+    await issue.save()
 
-    // -------------------------
-    // INCREASE AVAILABLE
-    // -------------------------
 
-    const book =
-      await Book.findById(issue.book);
+    // ======================================
+    // INCREASE BOOK AVAILABLE QUANTITY
+    // ======================================
+    //
+    // IMPORTANT:
+    // Do NOT use:
+    //
+    // const book = await Book.findById(...)
+    // book.availableQuantity += 1
+    // await book.save()
+    //
+    // because Book schema has required
+    // "subject" field and old books may not
+    // have subject.
+    //
+    // $inc updates only availableQuantity.
+    // ======================================
 
-    if (book) {
-
-      book.availableQuantity =
-        Number(book.availableQuantity) + 1;
-
-      // Safety: available cannot exceed total
-      if (
-        book.availableQuantity >
-        Number(book.quantity)
-      ) {
-        book.availableQuantity =
-          Number(book.quantity);
+    await Book.findOneAndUpdate(
+      {
+        _id: issue.book
+      },
+      {
+        $inc: {
+          availableQuantity: 1
+        }
+      },
+      {
+        runValidators: false
       }
+    )
 
-      await book.save();
-    }
 
-    // -------------------------
+    // ======================================
     // RESPONSE
-    // -------------------------
+    // ======================================
 
-    const populatedIssue =
-      await Issue.findById(issue._id)
-        .populate(
-          "book",
-          "bookId isbn title author subject"
-        )
-        .populate(
-          "student",
-          "name enrollmentNo email"
-        );
-
-    res.status(200).json({
-
+    res.json({
       message:
-        lateDays > 0
-          ? "Book returned successfully. Late fine applied."
-          : "Book returned successfully.",
-
-      lateDays,
+        "Book returned successfully",
 
       fine,
 
-      finePerDay: FINE_PER_DAY,
+      lateDays,
 
-      returnDate,
-
-      issue: populatedIssue
-
-    });
+      returnDate
+    })
 
   } catch (error) {
 
-    console.error("RETURN BOOK ERROR:", error);
+    console.error(
+      "RETURN BOOK ERROR:",
+      error
+    )
 
     res.status(500).json({
       message:
-        error.message || "Failed to return book"
-    });
+        error.message ||
+        "Book return failed"
+    })
   }
-};
+}
+
+
+// ==========================================
+// EXPORT
+// ==========================================
 
 module.exports = {
   getIssues,
   issueBook,
   returnBook
-};
+}
