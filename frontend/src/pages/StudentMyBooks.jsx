@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react"
 import axios from "axios"
 
@@ -30,6 +29,109 @@ function StudentMyBooks() {
 
     return `${day}/${month}/${year}`
   }
+
+
+  // Get today's date without time
+  const getToday = () => {
+
+    const today = new Date()
+
+    today.setHours(0, 0, 0, 0)
+
+    return today
+  }
+
+
+  // Calculate days remaining
+  const getDaysRemaining = (dueDate) => {
+
+    if (!dueDate) {
+      return null
+    }
+
+    const due = new Date(dueDate)
+
+    if (isNaN(due.getTime())) {
+      return null
+    }
+
+    due.setHours(0, 0, 0, 0)
+
+    const today = getToday()
+
+    const difference =
+      due.getTime() - today.getTime()
+
+    return Math.ceil(
+      difference / (1000 * 60 * 60 * 24)
+    )
+  }
+
+
+  // Book status
+  const getStatus = (issue) => {
+
+    // Already returned
+    if (issue.returnDate) {
+
+      return {
+        text: "Returned",
+        className: "bg-success"
+      }
+
+    }
+
+    const daysRemaining =
+      getDaysRemaining(issue.dueDate)
+
+
+    // Overdue
+    if (
+      daysRemaining !== null &&
+      daysRemaining < 0
+    ) {
+
+      return {
+        text: "Overdue",
+        className: "bg-danger"
+      }
+
+    }
+
+
+    // Due today
+    if (daysRemaining === 0) {
+
+      return {
+        text: "Due Today",
+        className: "bg-danger"
+      }
+
+    }
+
+
+    // Due within 3 days
+    if (
+      daysRemaining !== null &&
+      daysRemaining <= 3
+    ) {
+
+      return {
+        text: `Due in ${daysRemaining} day${daysRemaining === 1 ? "" : "s"}`,
+        className: "bg-warning text-dark"
+      }
+
+    }
+
+
+    // Normal issued book
+    return {
+      text: "Issued",
+      className: "bg-primary"
+    }
+
+  }
+
 
   useEffect(() => {
 
@@ -76,104 +178,182 @@ function StudentMyBooks() {
 
   }, [])
 
+
   return (
 
     <div className="container p-4">
 
-      <h2 className="mb-4">
-        My Issued Books
-      </h2>
+      {/* PAGE HEADER */}
 
-      <p className="text-muted">
-        View your issued and returned books
-      </p>
+      <div className="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+
+          <h2 className="mb-1">
+            My Issued Books
+          </h2>
+
+          <p className="text-muted mb-0">
+            View your issued and returned books
+          </p>
+
+        </div>
+
+        <span className="badge bg-primary fs-6">
+
+          {books.length} Books
+
+        </span>
+
+      </div>
+
+
+      {/* LOADING */}
 
       {loading ? (
 
-        <p>Loading...</p>
+        <div className="text-center p-4">
+
+          <div
+            className="spinner-border text-primary"
+            role="status"
+          ></div>
+
+          <p className="mt-2 text-muted">
+            Loading your books...
+          </p>
+
+        </div>
 
       ) : books.length === 0 ? (
 
+        /* NO BOOKS */
+
         <div className="alert alert-info">
+
+          <i className="bi bi-info-circle me-2"></i>
+
           No books issued to you.
+
         </div>
 
       ) : (
+
+        /* BOOK TABLE */
 
         <div className="card shadow-sm border-0">
 
           <div className="card-body">
 
             <h5 className="mb-3">
-              <strong>{books.length} Books</strong>
+
+              <strong>
+                My Books
+              </strong>
+
             </h5>
+
 
             <div className="table-responsive">
 
               <table className="table table-hover align-middle">
 
-                <thead>
+                <thead className="table-light">
 
                   <tr>
 
                     <th>#</th>
+
                     <th>Book</th>
+
                     <th>Issue Date</th>
+
                     <th>Due Date</th>
+
                     <th>Status</th>
 
                   </tr>
 
                 </thead>
 
+
                 <tbody>
 
                   {books.map(
-                    (issue, index) => (
+                    (issue, index) => {
 
-                      <tr key={issue._id}>
+                      const status =
+                        getStatus(issue)
 
-                        <td>
-                          {index + 1}
-                        </td>
+                      return (
 
-                        <td>
-                          <strong>
-                            {issue.book?.title ||
-                              issue.bookName ||
-                              "Book"}
-                          </strong>
-                        </td>
+                        <tr
+                          key={issue._id}
+                        >
 
-                        <td>
-                          {formatDate(issue.issueDate)}
-                        </td>
+                          {/* NUMBER */}
 
-                        <td>
-                          {formatDate(issue.dueDate)}
-                        </td>
+                          <td>
+                            {index + 1}
+                          </td>
 
-                        <td>
 
-                          <span
-                            className={
-                              issue.returnDate
-                                ? "badge bg-success"
-                                : "badge bg-warning text-dark"
-                            }
-                          >
+                          {/* BOOK */}
 
-                            {issue.returnDate
-                              ? "Returned"
-                              : "Issued"}
+                          <td>
 
-                          </span>
+                            <strong>
 
-                        </td>
+                              {issue.book?.title ||
+                                issue.bookName ||
+                                "Book"}
 
-                      </tr>
+                            </strong>
 
-                    )
+                          </td>
+
+
+                          {/* ISSUE DATE */}
+
+                          <td>
+
+                            {formatDate(
+                              issue.issueDate
+                            )}
+
+                          </td>
+
+
+                          {/* DUE DATE */}
+
+                          <td>
+
+                            {formatDate(
+                              issue.dueDate
+                            )}
+
+                          </td>
+
+
+                          {/* STATUS */}
+
+                          <td>
+
+                            <span
+                              className={`badge ${status.className}`}
+                            >
+
+                              {status.text}
+
+                            </span>
+
+                          </td>
+
+                        </tr>
+
+                      )
+
+                    }
                   )}
 
                 </tbody>
@@ -191,7 +371,7 @@ function StudentMyBooks() {
     </div>
 
   )
+
 }
 
 export default StudentMyBooks
-
