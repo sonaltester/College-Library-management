@@ -1,4 +1,4 @@
-const express = require("express")
+const express = require("express");
 
 const {
   getBooks,
@@ -7,16 +7,32 @@ const {
   deleteBook,
   getBookCount,
   getBookQuantity
-} = require("../controllers/bookController")
+} = require("../controllers/bookController");
 
-const router = express.Router()
+const router = express.Router();
 
-router.get("/", getBooks)
-router.get("/count", getBookCount)
-router.get("/quantity", getBookQuantity)
 
-router.post("/", createBook)
-router.put("/:id", updateBook)
-router.delete("/:id", deleteBook)
+// ==========================================
+// BOOK MANAGEMENT ROUTES
+// ==========================================
 
-module.exports = router
+// GET all books
+router.get("/", getBooks);
+
+// GET total number of book titles
+router.get("/count", getBookCount);
+
+// GET total and available copies
+router.get("/quantity", getBookQuantity);
+
+// CREATE new book
+router.post("/", createBook);
+
+// UPDATE existing book
+router.put("/:id", updateBook);
+
+// DELETE book
+router.delete("/:id", deleteBook);
+
+
+module.exports = router;

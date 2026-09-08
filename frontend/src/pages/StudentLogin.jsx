@@ -11,11 +11,19 @@ function StudentLogin({ setRole, setPage }) {
   const [error, setError] = useState("")
   const [showPassword, setShowPassword] = useState(false)
 
+  // Prevent browser autofill
+  const [enrollmentFocused, setEnrollmentFocused] = useState(false)
+  const [passwordFocused, setPasswordFocused] = useState(false)
+
   const handleChange = (e) => {
+    const { name, value } = e.target
+
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [name]: value
     })
+
+    setError("")
   }
 
   const handleSubmit = async (e) => {
@@ -33,7 +41,10 @@ function StudentLogin({ setRole, setPage }) {
 
       const response = await axios.post(
         "http://localhost:5000/api/student-auth/login",
-        formData
+        {
+          enrollmentNo: formData.enrollmentNo,
+          password: formData.password
+        }
       )
 
       const data = response.data
@@ -64,6 +75,7 @@ function StudentLogin({ setRole, setPage }) {
       // Student dashboard
       setRole("student")
       setPage("student-dashboard")
+
     } catch (error) {
       console.error("Student Login Error:", error)
 
@@ -71,6 +83,7 @@ function StudentLogin({ setRole, setPage }) {
         error.response?.data?.message ||
           "Invalid enrollment number or password."
       )
+
     } finally {
       setLoading(false)
     }
@@ -101,7 +114,11 @@ function StudentLogin({ setRole, setPage }) {
           display: "flex"
         }}
       >
-        {/* LEFT SIDE */}
+
+        {/* ==========================================
+            LEFT SIDE
+        ========================================== */}
+
         <div
           style={{
             flex: 1,
@@ -114,13 +131,32 @@ function StudentLogin({ setRole, setPage }) {
             justifyContent: "center"
           }}
         >
+
+          {/* SVGU LOGO */}
+
           <div
             style={{
-              fontSize: "54px",
-              marginBottom: "20px"
+              width: "90px",
+              height: "90px",
+              background: "#ffffff",
+              borderRadius: "18px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              marginBottom: "20px",
+              padding: "10px",
+              boxSizing: "border-box"
             }}
           >
-            📚
+            <img
+              src="/svgu-logo.png"
+              alt="SVGU Logo"
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "contain"
+              }}
+            />
           </div>
 
           <h1
@@ -168,9 +204,13 @@ function StudentLogin({ setRole, setPage }) {
               ✓ View profile
             </div>
           </div>
+
         </div>
 
-        {/* RIGHT SIDE */}
+        {/* ==========================================
+            RIGHT SIDE
+        ========================================== */}
+
         <div
           style={{
             flex: 1,
@@ -180,7 +220,15 @@ function StudentLogin({ setRole, setPage }) {
             justifyContent: "center"
           }}
         >
-          <div style={{ maxWidth: "400px", width: "100%", margin: "0 auto" }}>
+
+          <div
+            style={{
+              maxWidth: "400px",
+              width: "100%",
+              margin: "0 auto"
+            }}
+          >
+
             <h2
               style={{
                 margin: "0 0 8px",
@@ -202,6 +250,7 @@ function StudentLogin({ setRole, setPage }) {
             </p>
 
             {/* ERROR */}
+
             {error && (
               <div
                 style={{
@@ -218,9 +267,19 @@ function StudentLogin({ setRole, setPage }) {
               </div>
             )}
 
-            <form onSubmit={handleSubmit}>
-              {/* ENROLLMENT NUMBER */}
+            {/* LOGIN FORM */}
+
+            <form
+              onSubmit={handleSubmit}
+              autoComplete="off"
+            >
+
+              {/* ==========================================
+                  ENROLLMENT NUMBER
+              ========================================== */}
+
               <div style={{ marginBottom: "20px" }}>
+
                 <label
                   style={{
                     display: "block",
@@ -235,11 +294,23 @@ function StudentLogin({ setRole, setPage }) {
 
                 <input
                   type="text"
-                  name="enrollmentNo"
+                  name="studentEnrollment"
+                  id="student-login-enrollment"
                   value={formData.enrollmentNo}
-                  onChange={handleChange}
+                  onChange={(e) => {
+                    setFormData({
+                      ...formData,
+                      enrollmentNo: e.target.value
+                    })
+                    setError("")
+                  }}
                   placeholder="Enter enrollment number"
-                  autoComplete="username"
+                  autoComplete="off"
+                  autoCorrect="off"
+                  autoCapitalize="none"
+                  spellCheck="false"
+                  readOnly={!enrollmentFocused}
+                  onFocus={() => setEnrollmentFocused(true)}
                   style={{
                     width: "100%",
                     padding: "13px 14px",
@@ -247,13 +318,19 @@ function StudentLogin({ setRole, setPage }) {
                     borderRadius: "10px",
                     outline: "none",
                     fontSize: "15px",
-                    boxSizing: "border-box"
+                    boxSizing: "border-box",
+                    background: "#ffffff"
                   }}
                 />
+
               </div>
 
-              {/* PASSWORD */}
+              {/* ==========================================
+                  PASSWORD
+              ========================================== */}
+
               <div style={{ marginBottom: "25px" }}>
+
                 <label
                   style={{
                     display: "block",
@@ -266,14 +343,35 @@ function StudentLogin({ setRole, setPage }) {
                   Password
                 </label>
 
-                <div style={{ position: "relative" }}>
+                <div
+                  style={{
+                    position: "relative"
+                  }}
+                >
+
                   <input
-                    type={showPassword ? "text" : "password"}
-                    name="password"
+                    type={
+                      showPassword
+                        ? "text"
+                        : "password"
+                    }
+                    name="studentLoginPassword"
+                    id="student-login-password"
                     value={formData.password}
-                    onChange={handleChange}
+                    onChange={(e) => {
+                      setFormData({
+                        ...formData,
+                        password: e.target.value
+                      })
+                      setError("")
+                    }}
                     placeholder="Enter password"
-                    autoComplete="current-password"
+                    autoComplete="off"
+                    autoCorrect="off"
+                    autoCapitalize="none"
+                    spellCheck="false"
+                    readOnly={!passwordFocused}
+                    onFocus={() => setPasswordFocused(true)}
                     style={{
                       width: "100%",
                       padding: "13px 50px 13px 14px",
@@ -281,13 +379,16 @@ function StudentLogin({ setRole, setPage }) {
                       borderRadius: "10px",
                       outline: "none",
                       fontSize: "15px",
-                      boxSizing: "border-box"
+                      boxSizing: "border-box",
+                      background: "#ffffff"
                     }}
                   />
 
                   <button
                     type="button"
-                    onClick={() => setShowPassword(!showPassword)}
+                    onClick={() =>
+                      setShowPassword(!showPassword)
+                    }
                     style={{
                       position: "absolute",
                       right: "12px",
@@ -299,12 +400,19 @@ function StudentLogin({ setRole, setPage }) {
                       fontSize: "18px"
                     }}
                   >
-                    {showPassword ? "🙈" : "👁️"}
+                    {showPassword
+                      ? "🙈"
+                      : "👁️"}
                   </button>
+
                 </div>
+
               </div>
 
-              {/* LOGIN BUTTON */}
+              {/* ==========================================
+                  LOGIN BUTTON
+              ========================================== */}
+
               <button
                 type="submit"
                 disabled={loading}
@@ -313,19 +421,31 @@ function StudentLogin({ setRole, setPage }) {
                   padding: "14px",
                   border: "none",
                   borderRadius: "10px",
-                  background: loading ? "#93c5fd" : "#2563eb",
+                  background:
+                    loading
+                      ? "#93c5fd"
+                      : "#2563eb",
                   color: "#ffffff",
                   fontSize: "16px",
                   fontWeight: "600",
-                  cursor: loading ? "not-allowed" : "pointer",
+                  cursor:
+                    loading
+                      ? "not-allowed"
+                      : "pointer",
                   transition: "0.2s"
                 }}
               >
-                {loading ? "Logging in..." : "Login"}
+                {loading
+                  ? "Logging in..."
+                  : "Login"}
               </button>
+
             </form>
 
-            {/* REGISTER */}
+            {/* ==========================================
+                REGISTER
+            ========================================== */}
+
             <div
               style={{
                 textAlign: "center",
@@ -334,10 +454,14 @@ function StudentLogin({ setRole, setPage }) {
                 color: "#6b7280"
               }}
             >
+
               Don't have an account?{" "}
+
               <button
                 type="button"
-                onClick={() => setPage("student-register")}
+                onClick={() =>
+                  setPage("student-register")
+                }
                 style={{
                   border: "none",
                   background: "none",
@@ -350,18 +474,25 @@ function StudentLogin({ setRole, setPage }) {
               >
                 Register here
               </button>
+
             </div>
 
-            {/* BACK */}
+            {/* ==========================================
+                BACK
+            ========================================== */}
+
             <div
               style={{
                 textAlign: "center",
                 marginTop: "15px"
               }}
             >
+
               <button
                 type="button"
-                onClick={() => setPage("role-selection")}
+                onClick={() =>
+                  setPage("role-selection")
+                }
                 style={{
                   border: "none",
                   background: "none",
@@ -372,9 +503,13 @@ function StudentLogin({ setRole, setPage }) {
               >
                 ← Back to Role Selection
               </button>
+
             </div>
+
           </div>
+
         </div>
+
       </div>
     </div>
   )

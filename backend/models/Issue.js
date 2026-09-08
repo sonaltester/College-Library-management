@@ -1,4 +1,4 @@
-const mongoose = require("mongoose")
+const mongoose = require("mongoose");
 
 const issueSchema = new mongoose.Schema(
   {
@@ -14,16 +14,21 @@ const issueSchema = new mongoose.Schema(
       required: true
     },
 
+    // Automatically generated when book is issued
     issueDate: {
       type: Date,
-      default: Date.now
+      default: Date.now,
+      required: true
     },
 
+    // Automatically generated as issueDate + 14 days
     dueDate: {
       type: Date,
       required: true
     },
 
+    // Used internally when book is returned.
+    // It is NOT shown on Issue Book form.
     returnDate: {
       type: Date,
       default: null
@@ -37,13 +42,13 @@ const issueSchema = new mongoose.Schema(
 
     fine: {
       type: Number,
-      default: 0
+      default: 0,
+      min: 0
     }
   },
-
   {
     timestamps: true
   }
-)
+);
 
-module.exports = mongoose.model("Issue", issueSchema)
+module.exports = mongoose.model("Issue", issueSchema);

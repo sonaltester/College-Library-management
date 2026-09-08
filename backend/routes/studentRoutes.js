@@ -13,16 +13,28 @@ const {
 
 console.log("STUDENT ROUTES LOADED");
 
+// ==========================================
+// STUDENT MANAGEMENT ROUTES
+// ==========================================
+
+// GET all students
 router.get("/", getStudents);
 
+// GET total student count
+// IMPORTANT: keep this before /:id
+router.get("/count", getStudentCount);
+
+// CREATE student
+// Existing functionality preserved
 router.post("/", createStudent);
 
+// UPDATE student
 router.put("/:id", updateStudent);
 
+// UPDATE student status
 router.patch("/:id/status", updateStudentStatus);
 
+// DELETE student
 router.delete("/:id", deleteStudent);
-
-router.get("/count", getStudentCount);
 
 module.exports = router;

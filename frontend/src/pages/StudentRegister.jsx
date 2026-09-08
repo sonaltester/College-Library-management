@@ -55,6 +55,8 @@ function StudentRegister({ setPage }) {
         course: value,
         semester: ""
       });
+
+      setError("");
       return;
     }
 
@@ -62,6 +64,8 @@ function StudentRegister({ setPage }) {
       ...formData,
       [name]: value
     });
+
+    setError("");
   };
 
   const handleSubmit = async (e) => {
@@ -83,6 +87,14 @@ function StudentRegister({ setPage }) {
 
     if (!formData.email.trim()) {
       setError("Please enter your email");
+      return;
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!emailRegex.test(formData.email.trim())) {
+      setError("Please enter a valid email address");
       return;
     }
 
@@ -162,6 +174,7 @@ function StudentRegister({ setPage }) {
           "Registration successful! Please login."
       );
 
+      // Clear form after successful registration
       setFormData({
         name: "",
         enrollmentNo: "",
@@ -337,6 +350,7 @@ function StudentRegister({ setPage }) {
                   placeholder="Enter your full name"
                   value={formData.name}
                   onChange={handleChange}
+                  autoComplete="off"
                   required
                 />
               </div>
@@ -354,6 +368,7 @@ function StudentRegister({ setPage }) {
                   placeholder="Enter enrollment number"
                   value={formData.enrollmentNo}
                   onChange={handleChange}
+                  autoComplete="off"
                   required
                 />
               </div>
@@ -368,11 +383,20 @@ function StudentRegister({ setPage }) {
 
               <input
                 type="email"
-                name="email"
+                name="studentEmail"
+                id="student-registration-email"
                 className="form-control py-2"
                 placeholder="Enter your university email"
                 value={formData.email}
-                onChange={handleChange}
+                onChange={(e) => {
+                  setFormData({
+                    ...formData,
+                    email: e.target.value
+                  });
+                  setError("");
+                }}
+                autoComplete="new-password"
+                spellCheck="false"
                 required
               />
             </div>
@@ -391,6 +415,7 @@ function StudentRegister({ setPage }) {
                   className="form-select py-2"
                   value={formData.course}
                   onChange={handleChange}
+                  autoComplete="off"
                   required
                 >
                   <option value="">
@@ -426,6 +451,7 @@ function StudentRegister({ setPage }) {
                   value={formData.semester}
                   onChange={handleChange}
                   disabled={!formData.course}
+                  autoComplete="off"
                   required
                 >
                   <option value="">
@@ -465,6 +491,7 @@ function StudentRegister({ setPage }) {
                 onChange={handleChange}
                 maxLength="10"
                 pattern="[0-9]{10}"
+                autoComplete="off"
                 required
               />
             </div>
@@ -483,11 +510,19 @@ function StudentRegister({ setPage }) {
                       ? "text"
                       : "password"
                   }
-                  name="password"
+                  name="studentNewPassword"
+                  id="student-registration-password"
                   className="form-control py-2"
                   placeholder="Create a secure password"
                   value={formData.password}
-                  onChange={handleChange}
+                  onChange={(e) => {
+                    setFormData({
+                      ...formData,
+                      password: e.target.value
+                    });
+                    setError("");
+                  }}
+                  autoComplete="new-password"
                   minLength="6"
                   required
                 />
@@ -499,7 +534,9 @@ function StudentRegister({ setPage }) {
                     setShowPassword(!showPassword)
                   }
                 >
-                  {showPassword ? "Hide" : "Show"}
+                  {showPassword
+                    ? "Hide"
+                    : "Show"}
                 </button>
 
               </div>
@@ -523,11 +560,19 @@ function StudentRegister({ setPage }) {
                       ? "text"
                       : "password"
                   }
-                  name="confirmPassword"
+                  name="studentConfirmPassword"
+                  id="student-registration-confirm-password"
                   className="form-control py-2"
                   placeholder="Confirm your password"
                   value={formData.confirmPassword}
-                  onChange={handleChange}
+                  onChange={(e) => {
+                    setFormData({
+                      ...formData,
+                      confirmPassword: e.target.value
+                    });
+                    setError("");
+                  }}
+                  autoComplete="new-password"
                   minLength="6"
                   required
                 />
