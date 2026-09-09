@@ -660,15 +660,39 @@ function App() {
           }}
         >
 
+          {/* ========================= */}
           {/* LOGO / TITLE */}
+          {/* ========================= */}
 
-          <span className="navbar-brand text-white fw-bold">
+          <div className="d-flex align-items-center">
 
-            <i className="bi bi-book me-2"></i>
+            <img
+              src="/svgu-logo.png"
+              alt="SVGU Logo"
+              style={{
+                width: "52px",
+                height: "52px",
+                objectFit: "contain",
+                marginRight: "14px"
+              }}
+            />
 
-            SVGU Student Library Portal
+            <div
+              style={{
+                borderLeft: "2px solid rgba(255,255,255,0.5)",
+                paddingLeft: "20px"
+              }}
+            >
 
-          </span>
+              <span className="navbar-brand text-white fw-bold mb-0">
+
+                SVGU Student Library Portal
+
+              </span>
+
+            </div>
+
+          </div>
 
 
           {/* RIGHT SIDE */}
@@ -747,8 +771,11 @@ function App() {
                   >
 
                     <strong>
+
                       <i className="bi bi-bell me-2"></i>
+
                       Notifications
+
                     </strong>
 
 

@@ -13,7 +13,12 @@ function AdminRegister({ setPage }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
+
+  // Password show/hide
   const [showPassword, setShowPassword] = useState(false)
+
+  // Confirm Password show/hide
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
 
   const handleChange = (e) => {
@@ -34,6 +39,8 @@ function AdminRegister({ setPage }) {
     setSuccess("")
 
 
+    // Check password
+
     if (formData.password !== formData.confirmPassword) {
 
       setError("Passwords do not match")
@@ -46,6 +53,7 @@ function AdminRegister({ setPage }) {
     try {
 
       setLoading(true)
+
 
       const response = await axios.post(
         "http://localhost:5000/api/auth/register",
@@ -63,6 +71,8 @@ function AdminRegister({ setPage }) {
       )
 
 
+      // Clear all fields
+
       setFormData({
         name: "",
         email: "",
@@ -70,6 +80,14 @@ function AdminRegister({ setPage }) {
         confirmPassword: ""
       })
 
+
+      // Hide password after registration
+
+      setShowPassword(false)
+      setShowConfirmPassword(false)
+
+
+      // Go to login
 
       setTimeout(() => {
 
@@ -115,6 +133,9 @@ function AdminRegister({ setPage }) {
 
         <div className="card-body p-4 p-md-5">
 
+
+          {/* HEADER */}
+
           <div className="text-center mb-4">
 
             {/* SVGU LOGO */}
@@ -152,6 +173,8 @@ function AdminRegister({ setPage }) {
           </div>
 
 
+          {/* ERROR */}
+
           {error && (
 
             <div className="alert alert-danger">
@@ -164,6 +187,8 @@ function AdminRegister({ setPage }) {
 
           )}
 
+
+          {/* SUCCESS */}
 
           {success && (
 
@@ -178,10 +203,13 @@ function AdminRegister({ setPage }) {
           )}
 
 
-          <form onSubmit={handleSubmit}>
+          <form
+            onSubmit={handleSubmit}
+            autoComplete="off"
+          >
 
 
-            {/* NAME */}
+            {/* FULL NAME */}
 
             <div className="mb-3">
 
@@ -206,6 +234,7 @@ function AdminRegister({ setPage }) {
                   placeholder="Enter your full name"
                   value={formData.name}
                   onChange={handleChange}
+                  autoComplete="off"
                   required
                 />
 
@@ -239,6 +268,7 @@ function AdminRegister({ setPage }) {
                   placeholder="Enter your email"
                   value={formData.email}
                   onChange={handleChange}
+                  autoComplete="off"
                   required
                 />
 
@@ -276,8 +306,30 @@ function AdminRegister({ setPage }) {
                   placeholder="Create a password"
                   value={formData.password}
                   onChange={handleChange}
+                  autoComplete="new-password"
                   required
                 />
+
+
+                {/* EYE BUTTON */}
+
+                <button
+                  type="button"
+                  className="btn btn-outline-secondary"
+                  onClick={() =>
+                    setShowPassword(!showPassword)
+                  }
+                >
+
+                  <i
+                    className={
+                      showPassword
+                        ? "bi bi-eye-slash"
+                        : "bi bi-eye"
+                    }
+                  ></i>
+
+                </button>
 
               </div>
 
@@ -304,7 +356,7 @@ function AdminRegister({ setPage }) {
 
                 <input
                   type={
-                    showPassword
+                    showConfirmPassword
                       ? "text"
                       : "password"
                   }
@@ -313,21 +365,26 @@ function AdminRegister({ setPage }) {
                   placeholder="Confirm your password"
                   value={formData.confirmPassword}
                   onChange={handleChange}
+                  autoComplete="new-password"
                   required
                 />
 
+
+                {/* EYE BUTTON */}
 
                 <button
                   type="button"
                   className="btn btn-outline-secondary"
                   onClick={() =>
-                    setShowPassword(!showPassword)
+                    setShowConfirmPassword(
+                      !showConfirmPassword
+                    )
                   }
                 >
 
                   <i
                     className={
-                      showPassword
+                      showConfirmPassword
                         ? "bi bi-eye-slash"
                         : "bi bi-eye"
                     }
@@ -340,6 +397,8 @@ function AdminRegister({ setPage }) {
             </div>
 
 
+            {/* REGISTER BUTTON */}
+
             <button
               type="submit"
               className="btn btn-primary w-100 py-2 fw-semibold"
@@ -350,7 +409,6 @@ function AdminRegister({ setPage }) {
 
                 <>
                   <span className="spinner-border spinner-border-sm me-2"></span>
-
                   Registering...
                 </>
 
@@ -358,7 +416,6 @@ function AdminRegister({ setPage }) {
 
                 <>
                   <i className="bi bi-person-plus me-2"></i>
-
                   Create Admin Account
                 </>
 
@@ -367,12 +424,12 @@ function AdminRegister({ setPage }) {
             </button>
 
 
+            {/* BACK TO LOGIN */}
+
             <button
               type="button"
               className="btn btn-outline-secondary w-100 mt-3"
-              onClick={() =>
-                setPage("admin-login")
-              }
+              onClick={() => setPage("admin-login")}
             >
 
               <i className="bi bi-arrow-left me-2"></i>
