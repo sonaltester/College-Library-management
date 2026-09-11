@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { getIssues, returnBook } from "../services/issueService";
 
@@ -32,30 +33,43 @@ function ReturnBook() {
   // GET LATE DAYS
   // =========================
 
-  const getLateDays = (dueDate) => {
+  const getLateDays = (dueDate, returnDate = null) => {
 
     if (!dueDate) return 0;
 
     const due = new Date(dueDate);
-    const today = new Date();
 
-    due.setHours(0, 0, 0, 0);
-    today.setHours(0, 0, 0, 0);
-
-    const difference =
-      today.getTime() - due.getTime();
-
-    if (difference <= 0) {
+    if (isNaN(due.getTime())) {
       return 0;
     }
 
-    return Math.ceil(
+    // If book is already returned,
+    // calculate using return date.
+    // Otherwise calculate using today's date.
+    const endDate = returnDate
+      ? new Date(returnDate)
+      : new Date();
+
+    if (isNaN(endDate.getTime())) {
+      return 0;
+    }
+
+    // Remove time part
+    due.setHours(0, 0, 0, 0);
+    endDate.setHours(0, 0, 0, 0);
+
+    const difference =
+      endDate.getTime() - due.getTime();
+
+    const days = Math.floor(
       difference / (1000 * 60 * 60 * 24)
     );
+
+    return days > 0 ? days : 0;
   };
 
   // =========================
-  // ESTIMATED FINE
+  // GET FINE
   // =========================
 
   const getEstimatedFine = (dueDate) => {
@@ -129,7 +143,6 @@ function ReturnBook() {
 
       confirmMessage +=
         `\nNo late fine.\n`;
-
     }
 
     const confirmReturn =
@@ -145,10 +158,18 @@ function ReturnBook() {
         await returnBook(issue._id);
 
       const actualLateDays =
-        Number(data?.lateDays || 0);
+        Number(
+          data?.lateDays ??
+          data?.issue?.lateDays ??
+          lateDays
+        );
 
       const actualFine =
-        Number(data?.fine || 0);
+        Number(
+          data?.fine ??
+          data?.issue?.fine ??
+          actualLateDays * 5
+        );
 
       alert(
         `Book returned successfully!\n\n` +
@@ -486,14 +507,32 @@ function ReturnBook() {
                   filteredIssues.map(
                     (issue, index) => {
 
+                      // =========================
+                      // CALCULATE LATE DAYS
+                      // =========================
+
                       const lateDays =
-                        issue.status === "Issued"
-                          ? getLateDays(issue.dueDate)
-                          : 0;
+                        issue.status === "Returned"
+                          ? getLateDays(
+                              issue.dueDate,
+                              issue.returnDate
+                            )
+                          : getLateDays(
+                              issue.dueDate
+                            );
 
                       const isOverdue =
                         issue.status === "Issued" &&
                         lateDays > 0;
+
+                      // =========================
+                      // DISPLAY FINE
+                      // =========================
+
+                      const displayFine =
+                        issue.status === "Returned"
+                          ? Number(issue.fine || 0)
+                          : lateDays * 5;
 
                       return (
 
@@ -505,6 +544,8 @@ function ReturnBook() {
                               : ""
                           }
                         >
+
+                          {/* NUMBER */}
 
                           <td>
                             {index + 1}
@@ -571,7 +612,9 @@ function ReturnBook() {
                           <td>
 
                             {issue.status === "Returned"
-                              ? formatDate(issue.returnDate)
+                              ? formatDate(
+                                  issue.returnDate
+                                )
                               : "—"}
 
                           </td>
@@ -583,22 +626,31 @@ function ReturnBook() {
                             {isOverdue ? (
 
                               <span className="badge bg-danger">
+
                                 <i className="bi bi-exclamation-triangle me-1"></i>
+
                                 Overdue
+
                               </span>
 
                             ) : issue.status === "Issued" ? (
 
                               <span className="badge bg-warning text-dark">
+
                                 <i className="bi bi-book me-1"></i>
+
                                 Issued
+
                               </span>
 
                             ) : (
 
                               <span className="badge bg-success">
+
                                 <i className="bi bi-check-circle me-1"></i>
+
                                 Returned
+
                               </span>
 
                             )}
@@ -609,22 +661,23 @@ function ReturnBook() {
 
                           <td>
 
-                            {issue.status === "Returned" ? (
-
-                              <span>
-                                {issue.lateDays || 0} days
-                              </span>
-
-                            ) : lateDays > 0 ? (
+                            {lateDays > 0 ? (
 
                               <strong className="text-danger">
-                                {lateDays} days
+
+                                {lateDays}{" "}
+                                {lateDays === 1
+                                  ? "day"
+                                  : "days"}
+
                               </strong>
 
                             ) : (
 
                               <span className="text-success">
+
                                 0 days
+
                               </span>
 
                             )}
@@ -637,12 +690,14 @@ function ReturnBook() {
 
                             <strong
                               className={
-                                Number(issue.fine || 0) > 0
+                                displayFine > 0
                                   ? "text-danger"
                                   : "text-success"
                               }
                             >
-                              ₹{issue.fine || 0}
+
+                              ₹{displayFine}
+
                             </strong>
 
                           </td>
@@ -708,3 +763,4 @@ function ReturnBook() {
 }
 
 export default ReturnBook;
+
