@@ -2,6 +2,7 @@ import { useState } from "react"
 import axios from "axios"
 
 function StudentLogin({ setRole, setPage }) {
+
   const [formData, setFormData] = useState({
     enrollmentNo: "",
     password: ""
@@ -9,345 +10,320 @@ function StudentLogin({ setRole, setPage }) {
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+
+  // Password show / hide
   const [showPassword, setShowPassword] = useState(false)
 
-  // Prevent browser autofill
-  const [enrollmentFocused, setEnrollmentFocused] = useState(false)
-  const [passwordFocused, setPasswordFocused] = useState(false)
+
+  // =========================
+  // HANDLE CHANGE
+  // =========================
 
   const handleChange = (e) => {
-    const { name, value } = e.target
 
     setFormData({
       ...formData,
-      [name]: value
+      [e.target.name]: e.target.value
     })
 
-    setError("")
   }
 
+
+  // =========================
+  // LOGIN
+  // =========================
+
   const handleSubmit = async (e) => {
+
     e.preventDefault()
 
     setError("")
 
-    if (!formData.enrollmentNo || !formData.password) {
-      setError("Please enter enrollment number and password.")
-      return
-    }
-
     try {
+
       setLoading(true)
 
       const response = await axios.post(
         "http://localhost:5000/api/student-auth/login",
         {
-          enrollmentNo: formData.enrollmentNo,
+          enrollmentNo: formData.enrollmentNo.trim(),
           password: formData.password
         }
       )
 
       const data = response.data
 
-      if (!data.student) {
-        setError("Student login failed.")
-        return
+
+      // Save student
+
+      if (data.student) {
+
+        localStorage.setItem(
+          "student",
+          JSON.stringify(data.student)
+        )
+
       }
 
-      // Save student information
-      const student = data.student
+
+      // Save role
 
       localStorage.setItem(
-        "student",
-        JSON.stringify({
-          ...student,
-          enrollmentNo:
-            student.enrollmentNo ||
-            student.enrollmentNumber ||
-            student.enrollment ||
-            formData.enrollmentNo ||
-            ""
-        })
+        "role",
+        "student"
       )
 
-      localStorage.setItem("role", "student")
 
-      // Student dashboard
+      // Save token if available
+
+      if (data.token) {
+
+        localStorage.setItem(
+          "token",
+          data.token
+        )
+
+      }
+
+
+      // Reset password visibility
+
+      setShowPassword(false)
+
+
+      // Go to student dashboard
+
       setRole("student")
+
       setPage("student-dashboard")
 
+
     } catch (error) {
-      console.error("Student Login Error:", error)
+
+      console.error(
+        "Student Login Error:",
+        error
+      )
 
       setError(
         error.response?.data?.message ||
-          "Invalid enrollment number or password."
+        "Invalid enrollment number or password. Please try again."
       )
 
     } finally {
+
       setLoading(false)
+
     }
+
   }
 
+
   return (
+
     <div
+      className="min-vh-100 d-flex align-items-center justify-content-center p-3"
       style={{
-        minHeight: "100vh",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
         background:
-          "linear-gradient(135deg, #eef2ff 0%, #f8fafc 50%, #e0f2fe 100%)",
-        padding: "20px",
-        boxSizing: "border-box"
+          "linear-gradient(135deg, #eef2ff 0%, #f8fafc 50%, #e0f2fe 100%)"
       }}
     >
+
       <div
+        className="card border-0 shadow-lg overflow-hidden"
         style={{
           width: "100%",
-          maxWidth: "950px",
-          minHeight: "560px",
-          background: "#ffffff",
-          borderRadius: "22px",
-          overflow: "hidden",
-          boxShadow: "0 20px 60px rgba(0,0,0,0.12)",
-          display: "flex"
+          maxWidth: "1020px",
+          borderRadius: "22px"
         }}
       >
 
-        {/* ==========================================
-            LEFT SIDE
-        ========================================== */}
+        <div className="row g-0">
 
-        <div
-          style={{
-            flex: 1,
-            background:
-              "linear-gradient(135deg, #2563eb 0%, #1d4ed8 50%, #1e40af 100%)",
-            color: "#ffffff",
-            padding: "55px 45px",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center"
-          }}
-        >
 
-          {/* SVGU LOGO */}
+          {/* ========================= */}
+          {/* LEFT SIDE */}
+          {/* ========================= */}
 
           <div
+            className="col-md-6 text-white p-5 d-flex flex-column justify-content-center"
             style={{
-              width: "90px",
-              height: "90px",
-              background: "#ffffff",
-              borderRadius: "18px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              marginBottom: "20px",
-              padding: "10px",
-              boxSizing: "border-box"
+              background:
+                "linear-gradient(160deg, #2563eb, #1d4ed8, #1e40af)"
             }}
           >
-            <img
-              src="/svgu-logo.png"
-              alt="SVGU Logo"
-              style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "contain"
-              }}
-            />
-          </div>
 
-          <h1
-            style={{
-              fontSize: "36px",
-              margin: "0 0 15px",
-              fontWeight: "700"
-            }}
-          >
-            Student Portal
-          </h1>
+            {/* SVGU LOGO */}
 
-          <p
-            style={{
-              fontSize: "17px",
-              lineHeight: "1.7",
-              opacity: "0.92",
-              margin: 0
-            }}
-          >
-            Welcome to the College Library Management System.
-            <br />
-            Login to access your library account, books and issued books.
-          </p>
+            <div className="mb-4">
 
-          <div
-            style={{
-              marginTop: "35px",
-              padding: "18px",
-              borderRadius: "14px",
-              background: "rgba(255,255,255,0.12)",
-              fontSize: "14px",
-              lineHeight: "1.6"
-            }}
-          >
-            <strong>Student Features</strong>
+              <img
+                src="/svgu-logo.png"
+                alt="SVGU Logo"
+                style={{
+                  width: "100px",
+                  height: "100px",
+                  objectFit: "contain",
+                  background: "#ffffff",
+                  borderRadius: "18px",
+                  padding: "12px"
+                }}
+              />
 
-            <div style={{ marginTop: "10px" }}>
-              ✓ View available books
-              <br />
-              ✓ View issued books
-              <br />
-              ✓ Check due dates
-              <br />
-              ✓ View profile
             </div>
-          </div>
 
-        </div>
 
-        {/* ==========================================
-            RIGHT SIDE
-        ========================================== */}
-
-        <div
-          style={{
-            flex: 1,
-            padding: "55px 50px",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center"
-          }}
-        >
-
-          <div
-            style={{
-              maxWidth: "400px",
-              width: "100%",
-              margin: "0 auto"
-            }}
-          >
-
-            <h2
-              style={{
-                margin: "0 0 8px",
-                fontSize: "30px",
-                color: "#111827"
-              }}
-            >
-              Student Login
+            <h2 className="fw-bold mb-3">
+              Student Portal
             </h2>
 
+
             <p
+              className="mb-4"
               style={{
-                margin: "0 0 30px",
-                color: "#6b7280",
-                fontSize: "15px"
+                color: "#eff6ff",
+                lineHeight: "1.8",
+                fontSize: "17px"
               }}
             >
-              Login using your enrollment number
+
+              Welcome to the College Library Management
+              System.
+
+              <br />
+
+              Login to access your library account,
+              books and issued books.
+
             </p>
+
+
+            {/* STUDENT FEATURES */}
+
+            <div
+              className="p-3"
+              style={{
+                background:
+                  "rgba(255,255,255,0.12)",
+                borderRadius: "15px"
+              }}
+            >
+
+              <div className="fw-semibold mb-3">
+                Student Features
+              </div>
+
+
+              <div className="mb-2">
+                ✓ View available books
+              </div>
+
+
+              <div className="mb-2">
+                ✓ View issued books
+              </div>
+
+
+              <div className="mb-2">
+                ✓ Check due dates
+              </div>
+
+
+              <div>
+                ✓ View profile
+              </div>
+
+            </div>
+
+          </div>
+
+
+          {/* ========================= */}
+          {/* RIGHT SIDE */}
+          {/* ========================= */}
+
+          <div
+            className="col-md-6 bg-white p-4 p-md-5 d-flex flex-column justify-content-center"
+          >
+
+            {/* HEADER */}
+
+            <div className="mb-4">
+
+              <h2 className="fw-bold mb-2">
+                Student Login
+              </h2>
+
+              <p className="text-muted mb-0">
+                Login using your enrollment number
+              </p>
+
+            </div>
+
 
             {/* ERROR */}
 
             {error && (
+
               <div
-                style={{
-                  background: "#fef2f2",
-                  color: "#b91c1c",
-                  border: "1px solid #fecaca",
-                  padding: "12px 14px",
-                  borderRadius: "10px",
-                  marginBottom: "20px",
-                  fontSize: "14px"
-                }}
+                className="alert alert-danger border-0"
+                role="alert"
               >
+
+                <i className="bi bi-exclamation-circle me-2"></i>
+
                 {error}
+
               </div>
+
             )}
 
-            {/* LOGIN FORM */}
 
             <form
               onSubmit={handleSubmit}
               autoComplete="off"
             >
 
-              {/* ==========================================
-                  ENROLLMENT NUMBER
-              ========================================== */}
 
-              <div style={{ marginBottom: "20px" }}>
+              {/* ========================= */}
+              {/* ENROLLMENT NUMBER */}
+              {/* ========================= */}
 
-                <label
-                  style={{
-                    display: "block",
-                    marginBottom: "8px",
-                    fontWeight: "600",
-                    color: "#374151",
-                    fontSize: "14px"
-                  }}
-                >
+              <div className="mb-3">
+
+                <label className="form-label fw-semibold">
                   Enrollment Number
                 </label>
 
+
                 <input
                   type="text"
-                  name="studentEnrollment"
-                  id="student-login-enrollment"
-                  value={formData.enrollmentNo}
-                  onChange={(e) => {
-                    setFormData({
-                      ...formData,
-                      enrollmentNo: e.target.value
-                    })
-                    setError("")
-                  }}
+                  name="enrollmentNo"
+                  className="form-control py-2"
                   placeholder="Enter enrollment number"
+                  value={formData.enrollmentNo}
+                  onChange={handleChange}
                   autoComplete="off"
-                  autoCorrect="off"
-                  autoCapitalize="none"
-                  spellCheck="false"
-                  readOnly={!enrollmentFocused}
-                  onFocus={() => setEnrollmentFocused(true)}
-                  style={{
-                    width: "100%",
-                    padding: "13px 14px",
-                    border: "1px solid #d1d5db",
-                    borderRadius: "10px",
-                    outline: "none",
-                    fontSize: "15px",
-                    boxSizing: "border-box",
-                    background: "#ffffff"
-                  }}
+                  required
                 />
 
               </div>
 
-              {/* ==========================================
-                  PASSWORD
-              ========================================== */}
 
-              <div style={{ marginBottom: "25px" }}>
+              {/* ========================= */}
+              {/* PASSWORD */}
+              {/* ========================= */}
 
-                <label
-                  style={{
-                    display: "block",
-                    marginBottom: "8px",
-                    fontWeight: "600",
-                    color: "#374151",
-                    fontSize: "14px"
-                  }}
-                >
+              <div className="mb-4">
+
+                <label className="form-label fw-semibold">
                   Password
                 </label>
 
-                <div
-                  style={{
-                    position: "relative"
-                  }}
-                >
+
+                {/* SAME EYE BUTTON AS ADMIN LOGIN */}
+
+                <div className="input-group">
 
                   <input
                     type={
@@ -355,164 +331,132 @@ function StudentLogin({ setRole, setPage }) {
                         ? "text"
                         : "password"
                     }
-                    name="studentLoginPassword"
-                    id="student-login-password"
-                    value={formData.password}
-                    onChange={(e) => {
-                      setFormData({
-                        ...formData,
-                        password: e.target.value
-                      })
-                      setError("")
-                    }}
+                    name="password"
+                    className="form-control py-2"
                     placeholder="Enter password"
-                    autoComplete="off"
-                    autoCorrect="off"
-                    autoCapitalize="none"
-                    spellCheck="false"
-                    readOnly={!passwordFocused}
-                    onFocus={() => setPasswordFocused(true)}
-                    style={{
-                      width: "100%",
-                      padding: "13px 50px 13px 14px",
-                      border: "1px solid #d1d5db",
-                      borderRadius: "10px",
-                      outline: "none",
-                      fontSize: "15px",
-                      boxSizing: "border-box",
-                      background: "#ffffff"
-                    }}
+                    value={formData.password}
+                    onChange={handleChange}
+                    autoComplete="new-password"
+                    required
                   />
+
+
+                  {/* EYE BUTTON */}
 
                   <button
                     type="button"
+                    className="btn btn-outline-secondary"
                     onClick={() =>
                       setShowPassword(!showPassword)
                     }
-                    style={{
-                      position: "absolute",
-                      right: "12px",
-                      top: "50%",
-                      transform: "translateY(-50%)",
-                      border: "none",
-                      background: "transparent",
-                      cursor: "pointer",
-                      fontSize: "18px"
-                    }}
                   >
-                    {showPassword
-                      ? "🙈"
-                      : "👁️"}
+
+                    <i
+                      className={
+                        showPassword
+                          ? "bi bi-eye-slash"
+                          : "bi bi-eye"
+                      }
+                    ></i>
+
                   </button>
 
                 </div>
 
               </div>
 
-              {/* ==========================================
-                  LOGIN BUTTON
-              ========================================== */}
+
+              {/* ========================= */}
+              {/* LOGIN BUTTON */}
+              {/* ========================= */}
 
               <button
                 type="submit"
+                className="btn btn-primary w-100 py-2 fw-semibold"
                 disabled={loading}
-                style={{
-                  width: "100%",
-                  padding: "14px",
-                  border: "none",
-                  borderRadius: "10px",
-                  background:
-                    loading
-                      ? "#93c5fd"
-                      : "#2563eb",
-                  color: "#ffffff",
-                  fontSize: "16px",
-                  fontWeight: "600",
-                  cursor:
-                    loading
-                      ? "not-allowed"
-                      : "pointer",
-                  transition: "0.2s"
-                }}
               >
-                {loading
-                  ? "Logging in..."
-                  : "Login"}
+
+                {loading ? (
+
+                  <>
+
+                    <span className="spinner-border spinner-border-sm me-2"></span>
+
+                    Signing in...
+
+                  </>
+
+                ) : (
+
+                  <>
+                    Login
+                  </>
+
+                )}
+
               </button>
 
             </form>
 
-            {/* ==========================================
-                REGISTER
-            ========================================== */}
 
-            <div
-              style={{
-                textAlign: "center",
-                marginTop: "25px",
-                fontSize: "14px",
-                color: "#6b7280"
-              }}
-            >
+            {/* ========================= */}
+            {/* REGISTER */}
+            {/* ========================= */}
 
-              Don't have an account?{" "}
+            <div className="text-center mt-4">
+
+              <span className="text-muted">
+                Don't have an account?
+              </span>
 
               <button
                 type="button"
+                className="btn btn-link p-0 ms-1 fw-semibold"
                 onClick={() =>
                   setPage("student-register")
                 }
-                style={{
-                  border: "none",
-                  background: "none",
-                  color: "#2563eb",
-                  fontWeight: "600",
-                  cursor: "pointer",
-                  padding: 0,
-                  fontSize: "14px"
-                }}
               >
+
                 Register here
+
               </button>
 
             </div>
 
-            {/* ==========================================
-                BACK
-            ========================================== */}
 
-            <div
-              style={{
-                textAlign: "center",
-                marginTop: "15px"
-              }}
-            >
+            {/* ========================= */}
+            {/* BACK */}
+            {/* ========================= */}
+
+            <div className="text-center mt-3">
 
               <button
                 type="button"
+                className="btn btn-link text-muted"
                 onClick={() =>
                   setPage("role-selection")
                 }
-                style={{
-                  border: "none",
-                  background: "none",
-                  color: "#6b7280",
-                  cursor: "pointer",
-                  fontSize: "14px"
-                }}
               >
-                ← Back to Role Selection
+
+                <i className="bi bi-arrow-left me-2"></i>
+
+                Back to Role Selection
+
               </button>
 
             </div>
+
 
           </div>
 
         </div>
 
       </div>
+
     </div>
+
   )
+
 }
 
 export default StudentLogin
