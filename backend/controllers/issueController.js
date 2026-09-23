@@ -11,7 +11,7 @@ const getIssues = async (req, res) => {
     const issues = await Issue.find()
       .populate({
         path: "book",
-        select: "title author category quantity availableQuantity"
+        select: "bookId isbn title author subject category quantity availableQuantity"
       })
       .populate({
         path: "student",
@@ -203,20 +203,6 @@ const returnBook = async (req, res) => {
 
     // ======================================
     // INCREASE BOOK AVAILABLE QUANTITY
-    // ======================================
-    //
-    // IMPORTANT:
-    // Do NOT use:
-    //
-    // const book = await Book.findById(...)
-    // book.availableQuantity += 1
-    // await book.save()
-    //
-    // because Book schema has required
-    // "subject" field and old books may not
-    // have subject.
-    //
-    // $inc updates only availableQuantity.
     // ======================================
 
     await Book.findOneAndUpdate(

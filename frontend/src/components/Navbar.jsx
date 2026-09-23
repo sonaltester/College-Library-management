@@ -1,4 +1,5 @@
 function Navbar() {
+
   const today = new Date().toLocaleDateString("en-GB", {
     day: "2-digit",
     month: "short",
@@ -6,6 +7,7 @@ function Navbar() {
   })
 
   return (
+
     <nav
       className="navbar bg-white border-bottom px-4"
       style={{
@@ -13,23 +15,38 @@ function Navbar() {
         boxShadow: "0 2px 8px rgba(0,0,0,0.06)"
       }}
     >
+
+      {/* ========================= */}
       {/* LEFT SIDE */}
+      {/* ========================= */}
+
       <div className="d-flex align-items-center">
+
+        {/* SVGU LOGO */}
 
         <div
           className="d-flex align-items-center justify-content-center me-3"
           style={{
-            width: "46px",
-            height: "46px",
-            borderRadius: "12px",
-            background: "linear-gradient(135deg, #1e3c72, #2a5298)"
+            width: "48px",
+            height: "48px",
+            overflow: "hidden"
           }}
         >
-          <i
-            className="bi bi-book-half text-white"
-            style={{ fontSize: "22px" }}
-          ></i>
+
+          <img
+            src="/svgu-logo.png"
+            alt="SVGU Logo"
+            style={{
+              width: "46px",
+              height: "46px",
+              objectFit: "contain"
+            }}
+          />
+
         </div>
+
+
+        {/* TITLE */}
 
         <div>
 
@@ -43,6 +60,7 @@ function Navbar() {
             Library Management System
           </h4>
 
+
           <div
             className="d-flex align-items-center"
             style={{
@@ -50,13 +68,24 @@ function Navbar() {
               fontSize: "14px"
             }}
           >
+
             <span className="fw-semibold">
               SVGU College Library
             </span>
 
-            <span className="mx-2">•</span>
+            <span
+              className="mx-2"
+              style={{
+                color: "#adb5bd"
+              }}
+            >
+              •
+            </span>
 
-            <span>Admin Dashboard</span>
+            <span>
+              Admin Dashboard
+            </span>
+
           </div>
 
         </div>
@@ -64,44 +93,62 @@ function Navbar() {
       </div>
 
 
+      {/* ========================= */}
       {/* RIGHT SIDE */}
+      {/* ========================= */}
+
       <div className="d-flex align-items-center gap-4">
 
         {/* DATE */}
+
         <div
-          className="d-flex align-items-center px-3 py-2"
+          className="d-flex align-items-center"
           style={{
-            backgroundColor: "#f8f9fa",
-            borderRadius: "10px",
-            color: "#495057"
+            color: "#495057",
+            fontSize: "14px"
           }}
         >
-          <i className="bi bi-calendar3 me-2"></i>
 
-          <span
-            className="fw-medium"
-            style={{ fontSize: "14px" }}
-          >
+          <i
+            className="bi bi-calendar3 me-2"
+            style={{
+              fontSize: "17px",
+              color: "#172b4d"
+            }}
+          ></i>
+
+          <span className="fw-medium">
             {today}
           </span>
+
         </div>
 
 
+        {/* VERTICAL DIVIDER */}
+
+        <div
+          style={{
+            width: "1px",
+            height: "32px",
+            backgroundColor: "#dee2e6"
+          }}
+        ></div>
+
+
         {/* ADMIN */}
+
         <div className="d-flex align-items-center">
 
-          <div
-            className="d-flex align-items-center justify-content-center me-2"
+          {/* USER ICON - NO ROUND BACKGROUND */}
+
+          <i
+            className="bi bi-person-badge me-2"
             style={{
-              width: "42px",
-              height: "42px",
-              borderRadius: "50%",
-              background: "#172b4d",
-              color: "white"
+              fontSize: "25px",
+              color: "#172b4d"
             }}
-          >
-            <i className="bi bi-person-fill"></i>
-          </div>
+          ></i>
+
 
           <div>
 
@@ -131,7 +178,9 @@ function Navbar() {
       </div>
 
     </nav>
+
   )
 }
 
 export default Navbar
+

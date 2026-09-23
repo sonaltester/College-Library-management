@@ -1,9 +1,7 @@
-
 import { useEffect, useState } from "react";
 import { getIssues, returnBook } from "../services/issueService";
 
 function ReturnBook() {
-
   const [issues, setIssues] = useState([]);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
@@ -13,7 +11,6 @@ function ReturnBook() {
   // =========================
 
   const formatDate = (dateValue) => {
-
     if (!dateValue) return "N/A";
 
     const date = new Date(dateValue);
@@ -25,8 +22,44 @@ function ReturnBook() {
     return date.toLocaleDateString("en-GB", {
       day: "2-digit",
       month: "2-digit",
-      year: "numeric"
+      year: "numeric",
     });
+  };
+
+  // =========================
+  // GET BOOK ID
+  // =========================
+
+  const getBookId = (issue) => {
+    if (issue?.book?.bookId) {
+      return issue.book.bookId;
+    }
+
+    if (issue?.bookId) {
+      return issue.bookId;
+    }
+
+    if (issue?.book?.id) {
+      return issue.book.id;
+    }
+
+    return "—";
+  };
+
+  // =========================
+  // GET BOOK ISBN
+  // =========================
+
+  const getBookISBN = (issue) => {
+    if (issue?.book?.isbn) {
+      return issue.book.isbn;
+    }
+
+    if (issue?.isbn) {
+      return issue.isbn;
+    }
+
+    return "";
   };
 
   // =========================
@@ -34,7 +67,6 @@ function ReturnBook() {
   // =========================
 
   const getLateDays = (dueDate, returnDate = null) => {
-
     if (!dueDate) return 0;
 
     const due = new Date(dueDate);
@@ -43,9 +75,6 @@ function ReturnBook() {
       return 0;
     }
 
-    // If book is already returned,
-    // calculate using return date.
-    // Otherwise calculate using today's date.
     const endDate = returnDate
       ? new Date(returnDate)
       : new Date();
@@ -54,7 +83,6 @@ function ReturnBook() {
       return 0;
     }
 
-    // Remove time part
     due.setHours(0, 0, 0, 0);
     endDate.setHours(0, 0, 0, 0);
 
@@ -73,7 +101,6 @@ function ReturnBook() {
   // =========================
 
   const getEstimatedFine = (dueDate) => {
-
     const lateDays = getLateDays(dueDate);
 
     return lateDays * 5;
@@ -84,9 +111,7 @@ function ReturnBook() {
   // =========================
 
   const loadIssues = async () => {
-
     try {
-
       const data = await getIssues();
 
       setIssues(
@@ -94,9 +119,7 @@ function ReturnBook() {
           ? data
           : []
       );
-
     } catch (error) {
-
       console.error(
         "Failed to load issues:",
         error
@@ -118,31 +141,39 @@ function ReturnBook() {
   // =========================
 
   const handleReturn = async (issue) => {
-
     const lateDays =
       getLateDays(issue.dueDate);
 
     const estimatedFine =
       getEstimatedFine(issue.dueDate);
 
+    const bookTitle =
+      issue.book?.title ||
+      "N/A";
+
+    const bookId =
+      getBookId(issue);
+
+    const studentName =
+      issue.student?.name ||
+      "N/A";
+
     let confirmMessage =
-      `Are you sure you want to return this book?\n\n` +
-      `Book: ${issue.book?.title || "N/A"}\n` +
-      `Student: ${issue.student?.name || "N/A"}\n` +
-      `Due Date: ${formatDate(issue.dueDate)}\n`;
+      "Are you sure you want to return this book?\n\n" +
+      "Book: " + bookTitle + "\n" +
+      "Book ID: " + bookId + "\n" +
+      "Student: " + studentName + "\n" +
+      "Due Date: " + formatDate(issue.dueDate) + "\n";
 
     if (lateDays > 0) {
-
       confirmMessage +=
-        `\n⚠️ OVERDUE\n` +
-        `Late Days: ${lateDays}\n` +
-        `Estimated Fine: ₹${estimatedFine}\n` +
-        `Fine Rate: ₹5/day\n`;
-
+        "\nOVERDUE\n" +
+        "Late Days: " + lateDays + "\n" +
+        "Estimated Fine: Rs. " + estimatedFine + "\n" +
+        "Fine Rate: Rs. 5/day\n";
     } else {
-
       confirmMessage +=
-        `\nNo late fine.\n`;
+        "\nNo late fine.\n";
     }
 
     const confirmReturn =
@@ -153,7 +184,6 @@ function ReturnBook() {
     }
 
     try {
-
       const data =
         await returnBook(issue._id);
 
@@ -172,17 +202,24 @@ function ReturnBook() {
         );
 
       alert(
-        `Book returned successfully!\n\n` +
-        `Return Date: ${formatDate(new Date())}\n` +
-        `Due Date: ${formatDate(issue.dueDate)}\n` +
-        `Late Days: ${actualLateDays}\n` +
-        `Fine: ₹${actualFine}`
+        "Book returned successfully!\n\n" +
+        "Book ID: " + bookId + "\n" +
+        "Return Date: " +
+        formatDate(new Date()) +
+        "\n" +
+        "Due Date: " +
+        formatDate(issue.dueDate) +
+        "\n" +
+        "Late Days: " +
+        actualLateDays +
+        "\n" +
+        "Fine: Rs. " +
+        actualFine
       );
 
       await loadIssues();
 
     } catch (error) {
-
       console.error(
         "RETURN BOOK ERROR:",
         error
@@ -201,14 +238,22 @@ function ReturnBook() {
 
   const filteredIssues =
     issues.filter((issue) => {
-
-      const searchText = `
-        ${issue.book?.title || ""}
-        ${issue.book?.bookId || ""}
-        ${issue.book?.isbn || ""}
-        ${issue.student?.name || ""}
-        ${issue.student?.enrollmentNo || ""}
-      `.toLowerCase();
+      const searchText =
+        (
+          (issue.book?.title || "") +
+          " " +
+          getBookId(issue) +
+          " " +
+          getBookISBN(issue) +
+          " " +
+          (issue.book?.author || "") +
+          " " +
+          (issue.book?.subject || "") +
+          " " +
+          (issue.student?.name || "") +
+          " " +
+          (issue.student?.enrollmentNo || "")
+        ).toLowerCase();
 
       const matchesSearch =
         searchText.includes(
@@ -231,12 +276,14 @@ function ReturnBook() {
 
   const issuedCount =
     issues.filter(
-      (issue) => issue.status === "Issued"
+      (issue) =>
+        issue.status === "Issued"
     ).length;
 
   const returnedCount =
     issues.filter(
-      (issue) => issue.status === "Returned"
+      (issue) =>
+        issue.status === "Returned"
     ).length;
 
   const overdueCount =
@@ -247,7 +294,6 @@ function ReturnBook() {
     ).length;
 
   return (
-
     <div className="container-fluid p-4">
 
       {/* ========================= */}
@@ -258,17 +304,15 @@ function ReturnBook() {
 
         <div>
 
-          <div className="d-flex align-items-center gap-2">
+          <div className="d-flex align-items-center gap-3">
 
-            <div
-              className="rounded-3 d-flex align-items-center justify-content-center bg-success bg-opacity-10"
+            <i
+              className="bi bi-arrow-return-left"
               style={{
-                width: "45px",
-                height: "45px"
+                fontSize: "32px",
+                color: "#198754",
               }}
-            >
-              <i className="bi bi-arrow-return-left text-success fs-4"></i>
-            </div>
+            ></i>
 
             <div>
 
@@ -298,18 +342,36 @@ function ReturnBook() {
 
       <div className="row g-3 mb-4">
 
+        {/* TOTAL */}
+
         <div className="col-md-3">
 
           <div className="card border-0 shadow-sm">
 
             <div className="card-body">
 
-              <div className="text-muted small">
-                Total Records
-              </div>
+              <div className="d-flex align-items-center justify-content-between">
 
-              <div className="fs-3 fw-bold">
-                {issues.length}
+                <div>
+
+                  <div className="text-muted small">
+                    Total Records
+                  </div>
+
+                  <div className="fs-3 fw-bold">
+                    {issues.length}
+                  </div>
+
+                </div>
+
+                <i
+                  className="bi bi-journal-text"
+                  style={{
+                    fontSize: "28px",
+                    color: "#0d6efd",
+                  }}
+                ></i>
+
               </div>
 
             </div>
@@ -318,18 +380,36 @@ function ReturnBook() {
 
         </div>
 
+        {/* ISSUED */}
+
         <div className="col-md-3">
 
           <div className="card border-0 shadow-sm">
 
             <div className="card-body">
 
-              <div className="text-muted small">
-                Currently Issued
-              </div>
+              <div className="d-flex align-items-center justify-content-between">
 
-              <div className="fs-3 fw-bold text-warning">
-                {issuedCount}
+                <div>
+
+                  <div className="text-muted small">
+                    Currently Issued
+                  </div>
+
+                  <div className="fs-3 fw-bold text-warning">
+                    {issuedCount}
+                  </div>
+
+                </div>
+
+                <i
+                  className="bi bi-book"
+                  style={{
+                    fontSize: "28px",
+                    color: "#f59f00",
+                  }}
+                ></i>
+
               </div>
 
             </div>
@@ -338,18 +418,36 @@ function ReturnBook() {
 
         </div>
 
+        {/* OVERDUE */}
+
         <div className="col-md-3">
 
           <div className="card border-0 shadow-sm">
 
             <div className="card-body">
 
-              <div className="text-muted small">
-                Overdue
-              </div>
+              <div className="d-flex align-items-center justify-content-between">
 
-              <div className="fs-3 fw-bold text-danger">
-                {overdueCount}
+                <div>
+
+                  <div className="text-muted small">
+                    Overdue
+                  </div>
+
+                  <div className="fs-3 fw-bold text-danger">
+                    {overdueCount}
+                  </div>
+
+                </div>
+
+                <i
+                  className="bi bi-exclamation-triangle"
+                  style={{
+                    fontSize: "28px",
+                    color: "#dc3545",
+                  }}
+                ></i>
+
               </div>
 
             </div>
@@ -358,18 +456,36 @@ function ReturnBook() {
 
         </div>
 
+        {/* RETURNED */}
+
         <div className="col-md-3">
 
           <div className="card border-0 shadow-sm">
 
             <div className="card-body">
 
-              <div className="text-muted small">
-                Returned
-              </div>
+              <div className="d-flex align-items-center justify-content-between">
 
-              <div className="fs-3 fw-bold text-success">
-                {returnedCount}
+                <div>
+
+                  <div className="text-muted small">
+                    Returned
+                  </div>
+
+                  <div className="fs-3 fw-bold text-success">
+                    {returnedCount}
+                  </div>
+
+                </div>
+
+                <i
+                  className="bi bi-check-circle"
+                  style={{
+                    fontSize: "28px",
+                    color: "#198754",
+                  }}
+                ></i>
+
               </div>
 
             </div>
@@ -405,7 +521,7 @@ function ReturnBook() {
                 <input
                   type="text"
                   className="form-control"
-                  placeholder="Search by book, Book ID, student or enrollment number..."
+                  placeholder="Search by book, Book ID, ISBN, student or enrollment number..."
                   value={search}
                   onChange={(e) =>
                     setSearch(e.target.value)
@@ -467,7 +583,6 @@ function ReturnBook() {
               <thead className="table-dark">
 
                 <tr>
-
                   <th>#</th>
                   <th>Book</th>
                   <th>Student</th>
@@ -478,7 +593,6 @@ function ReturnBook() {
                   <th>Late Days</th>
                   <th>Fine</th>
                   <th>Action</th>
-
                 </tr>
 
               </thead>
@@ -494,9 +608,16 @@ function ReturnBook() {
                       className="text-center text-muted py-5"
                     >
 
-                      <i className="bi bi-inbox fs-3 d-block mb-2"></i>
+                      <i
+                        className="bi bi-inbox"
+                        style={{
+                          fontSize: "34px",
+                        }}
+                      ></i>
 
-                      No records found
+                      <div className="mt-2">
+                        No records found
+                      </div>
 
                     </td>
 
@@ -508,7 +629,7 @@ function ReturnBook() {
                     (issue, index) => {
 
                       // =========================
-                      // CALCULATE LATE DAYS
+                      // LATE DAYS
                       // =========================
 
                       const lateDays =
@@ -547,7 +668,7 @@ function ReturnBook() {
 
                           {/* NUMBER */}
 
-                          <td>
+                          <td className="fw-semibold">
                             {index + 1}
                           </td>
 
@@ -559,15 +680,46 @@ function ReturnBook() {
                               {issue.book?.title || "N/A"}
                             </div>
 
-                            <small className="text-muted">
-                              ID: {issue.book?.bookId || "—"}
+                            <small className="text-muted d-block">
+
+                              <strong>
+                                ID:
+                              </strong>{" "}
+
+                              {getBookId(issue)}
+
                             </small>
 
-                            <br />
+                            {getBookISBN(issue) && (
 
-                            <small className="text-muted">
-                              {issue.book?.author || ""}
-                            </small>
+                              <small className="text-muted d-block">
+
+                                ISBN:{" "}
+                                {getBookISBN(issue)}
+
+                              </small>
+
+                            )}
+
+                            {issue.book?.author && (
+
+                              <small className="text-muted d-block">
+
+                                {issue.book.author}
+
+                              </small>
+
+                            )}
+
+                            {issue.book?.subject && (
+
+                              <small className="text-muted d-block">
+
+                                {issue.book.subject}
+
+                              </small>
+
+                            )}
 
                           </td>
 
@@ -666,6 +818,7 @@ function ReturnBook() {
                               <strong className="text-danger">
 
                                 {lateDays}{" "}
+
                                 {lateDays === 1
                                   ? "day"
                                   : "days"}
@@ -675,9 +828,7 @@ function ReturnBook() {
                             ) : (
 
                               <span className="text-success">
-
                                 0 days
-
                               </span>
 
                             )}
@@ -695,9 +846,7 @@ function ReturnBook() {
                                   : "text-success"
                               }
                             >
-
-                              ₹{displayFine}
-
+                              Rs. {displayFine}
                             </strong>
 
                           </td>
@@ -742,7 +891,6 @@ function ReturnBook() {
                         </tr>
 
                       );
-
                     }
                   )
 
@@ -763,4 +911,3 @@ function ReturnBook() {
 }
 
 export default ReturnBook;
-
