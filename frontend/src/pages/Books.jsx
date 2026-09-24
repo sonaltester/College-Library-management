@@ -32,6 +32,7 @@ function Books() {
     price: "",
     shelfNumber: "",
     description: "",
+    remarks: "",
     quantity: ""
   };
 
@@ -190,6 +191,8 @@ function Books() {
 
         description: formData.description.trim(),
 
+        remarks: formData.remarks.trim(),
+
         quantity: quantity
       };
 
@@ -254,6 +257,8 @@ function Books() {
       shelfNumber: book.shelfNumber || "",
 
       description: book.description || "",
+
+      remarks: book.remarks || "",
 
       quantity: book.quantity || ""
     });
@@ -880,6 +885,25 @@ function Books() {
 
                 </div>
 
+                {/* REMARKS */}
+
+                <div className="col-md-4">
+
+                  <label className="form-label fw-semibold">
+                    Remarks
+                  </label>
+
+                  <textarea
+                    name="remarks"
+                    className="form-control"
+                    rows="3"
+                    placeholder="Enter remarks..."
+                    value={formData.remarks}
+                    onChange={handleChange}
+                  ></textarea>
+
+                </div>
+
                 {/* QUANTITY */}
 
                 <div className="col-md-4">
@@ -1147,6 +1171,10 @@ function Books() {
                   Shelf
                 </th>
 
+                <th>
+                  Remarks
+                </th>
+
                 <th className="text-center">
                   Total
                 </th>
@@ -1174,7 +1202,7 @@ function Books() {
                 <tr>
 
                   <td
-                    colSpan="9"
+                    colSpan="10"
                     className="text-center py-5"
                   >
 
@@ -1193,7 +1221,7 @@ function Books() {
                 <tr>
 
                   <td
-                    colSpan="9"
+                    colSpan="10"
                     className="text-center py-5"
                   >
 
@@ -1325,6 +1353,20 @@ function Books() {
                           </span>
                         )}
 
+                      </td>
+
+                      {/* REMARKS */}
+
+                      <td>
+                        {book.remarks ? (
+                          <span className="text-muted">
+                            {book.remarks}
+                          </span>
+                        ) : (
+                          <span className="text-muted">
+                            —
+                          </span>
+                        )}
                       </td>
 
                       {/* TOTAL */}
