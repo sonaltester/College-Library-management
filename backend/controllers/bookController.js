@@ -77,6 +77,10 @@ const createBook = async (req, res) => {
       price,
       shelfNumber,
       description,
+
+      // NEW FIELD
+      remarks,
+
       quantity
     } = req.body;
 
@@ -181,6 +185,9 @@ const createBook = async (req, res) => {
 
       description: description?.trim() || "",
 
+      // NEW FIELD
+      remarks: remarks?.trim() || "",
+
       quantity: bookQuantity,
 
       availableQuantity: bookQuantity
@@ -229,6 +236,10 @@ const updateBook = async (req, res) => {
       price,
       shelfNumber,
       description,
+
+      // NEW FIELD
+      remarks,
+
       quantity
     } = req.body;
 
@@ -317,6 +328,10 @@ const updateBook = async (req, res) => {
 
     book.description =
       description?.trim() || "";
+
+    // NEW FIELD
+    book.remarks =
+      remarks?.trim() || "";
 
     book.quantity =
       newQuantity;

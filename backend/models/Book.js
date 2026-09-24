@@ -82,6 +82,13 @@ const bookSchema = new mongoose.Schema(
       trim: true
     },
 
+    // Remarks - NEW FIELD
+    remarks: {
+      type: String,
+      default: "",
+      trim: true
+    },
+
     // Total Quantity
     quantity: {
       type: Number,
